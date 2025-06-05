@@ -1,0 +1,25 @@
+      *----------------------------------------------------------------*00010000
+      * BOOK DE ARQUIVO     - VARIAVEIS DE DATA EXTENSO                 00020006
+      * NOME DO BOOK        - VARDATA                                   00030006
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        00040001
+      * NOME DO ARQUIVO     - VARDATA                                   00041006
+      * TAMANHO DO REGISTRO - 94 BYTES                                  00050004
+      *----------------------------------------------------------------*00060001
+       01  WS-DATA-SISTEMA.                                             00070007
+           05 WS-ANO                       PIC X(02).                   00080008
+           05 WS-MES                       PIC X(02).                   00090008
+           05 WS-DIA                       PIC X(02).                   00100008
+       01  WS-DATA-JUL.                                                 00101007
+           05 WS-ANO-J                     PIC 9(02).                   00110008
+           05 WS-DIA-J                     PIC X(03).                   00130008
+       01  WS-DATA-SISTEMA-F.                                           00140007
+           05 WS-DIA-F                     PIC 9(02).                   00150009
+           05 FILLER                       PIC X(01)                    00160007
+                                                   VALUE '/'.           00170006
+           05 WS-MES-F                     PIC 9(02).                   00171009
+           05 FILLER                       PIC X(01)                    00172007
+                                                   VALUE '/'.           00173006
+           05 WS-ANO-F                     PIC 9(02).                   00174009
+       77  WS-MES-EXT                      PIC X(09).                   00180007
+       77  WS-DIA-SEMANA                   PIC 9.                       00190007
+       77  WS-DIA-SEMANA-F                 PIC X(13).                   00200007

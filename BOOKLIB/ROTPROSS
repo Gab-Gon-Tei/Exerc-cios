@@ -1,0 +1,26 @@
+      *----------------------------------------------------------------*00020001
+      * BOOK DE ARQUIVO     - TEMPO DE PROCESSAMENTO                    00030005
+      * NOME DO BOOK        - ROTPROSS                                  00040005
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        00050001
+      *----------------------------------------------------------------*00080001
+       9000-TEMPO-DE-PROCESSAMENTO.                                     00090007
+           COMPUTE WS-DIFERENCA = ( WS-HORA-F * 360000 +                00100005
+                                    WS-MIN-F * 6000 +                   00110005
+                                    WS-SEG-F * 100 +                    00120005
+                                    WS-CENT-F) -                        00130005
+                                  ( WS-HORA-I * 360000 +                00140005
+                                    WS-MIN-I * 6000 +                   00150005
+                                    WS-SEG-I * 100 +                    00160005
+                                    WS-CENT-I)                          00170005
+           COMPUTE WS-HORA-P = WS-DIFERENCA / 360000                    00180005
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-HORA-P * 360000     00190005
+           COMPUTE WS-MIN-P = WS-DIFERENCA / 6000                       00200005
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-MIN-P * 6000        00210005
+           COMPUTE WS-SEG-P = WS-DIFERENCA / 100                        00220005
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-SEG-P * 100         00230005
+           COMPUTE WS-CENT-P = WS-DIFERENCA                             00240005
+           MOVE WS-HORA-P                  TO WS-HORA-PF                00250005
+           MOVE WS-MIN-P                   TO WS-MIN-PF                 00260005
+           MOVE WS-SEG-P                   TO WS-SEG-PF                 00270005
+           MOVE WS-CENT-P                  TO WS-CENT-PF                00280005
+           .                                                            00420006

@@ -1,0 +1,30 @@
+      ******************************************************************
+      * DCLGEN TABLE(CLIENTES)                                         *
+      *        LIBRARY(FS.FSYS009.BOOKLIB(CLIENTES))                   *
+      *        LANGUAGE(COBOL)                                         *
+      *        QUOTE                                                   *
+      * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
+      ******************************************************************
+           EXEC SQL DECLARE CLIENTES TABLE
+           ( NOMECLI                        VARCHAR(30) NOT NULL,
+             CPFCLI                         CHAR(11) NOT NULL,
+             UFCLI                          CHAR(2),
+             DATANASCCLI                    DATE,
+             CONTACLI                       CHAR(7),
+             AGENCIACLI                     CHAR(4)
+           ) END-EXEC.
+      ******************************************************************
+      * COBOL DECLARATION FOR TABLE CLIENTES                           *
+      ******************************************************************
+       01  DCLCLIENTES.
+           10 NOMECLI.
+              49 NOMECLI-LEN       PIC S9(4) USAGE COMP.
+              49 NOMECLI-TEXT      PIC X(30).
+           10 CPFCLI               PIC X(11).
+           10 UFCLI                PIC X(2).
+           10 DATANASCCLI          PIC X(10).
+           10 CONTACLI             PIC X(7).
+           10 AGENCIACLI           PIC X(4).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 6       *
+      ******************************************************************

@@ -1,0 +1,78 @@
+      *--------------------------------------------------------------*  00010004
+       IDENTIFICATION                      DIVISION.                    00020004
+      *--------------------------------------------------------------*  00030004
+       PROGRAM-ID.                         EX012P09.                    00040008
+       AUTHOR.                             NELSON.                      00050008
+      *                                                                 00060004
+      *--------------------------------------------------------------*  00070004
+       ENVIRONMENT                         DIVISION.                    00080004
+      *--------------------------------------------------------------*  00090004
+       CONFIGURATION                       SECTION.                     00100004
+       SPECIAL-NAMES.                                                   00110004
+           DECIMAL-POINT IS COMMA.                                      00120004
+       INPUT-OUTPUT                        SECTION.
+       FILE-CONTROL.
+           SELECT NUMFILE ASSIGN TO UT-S-NUMFILE
+           .
+      *
+      *--------------------------------------------------------------*  00130004
+       DATA                                DIVISION.                    00140004
+      *--------------------------------------------------------------*  00210008
+       FILE                                SECTION.                     00160004
+      *--------------------------------------------------------------*  00210008
+       FD  NUMFILE
+           RECORDING MODE IS F
+           .
+       01  REG-NUMFILE.
+           05 NUM01                        PIC 9(3).
+           05 FILLER                       PIC X(1).
+           05 NUM02                        PIC S9(3).
+           05 FILLER                       PIC X(1).
+           05 NUM03                        PIC 9(3) COMP.
+           05 FILLER                       PIC X(1).
+           05 NUM04                        PIC S9(3) COMP.
+           05 FILLER                       PIC X(1).
+           05 NUM05                        PIC 9(3) COMP-3.
+           05 FILLER                       PIC X(1).
+           05 NUM06                        PIC S9(3) COMP-3.
+      *--------------------------------------------------------------*  00210008
+       WORKING-STORAGE                     SECTION.                     00160004
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEL ESPELHO                                             *
+      *--------------------------------------------------------------*  00210008
+       01  WS-REG-NUMFILE.
+           05 WS-NUM01                     PIC 9(3).
+           05 FILLER                       PIC X(1) VALUE 'X'.
+           05 WS-NUM02                     PIC S9(3).
+           05 FILLER                       PIC X(1) VALUE 'X'.
+           05 WS-NUM03                     PIC 9(3) COMP.
+           05 FILLER                       PIC X(1) VALUE 'X'.
+           05 WS-NUM04                     PIC S9(3) COMP.
+           05 FILLER                       PIC X(1) VALUE 'X'.
+           05 WS-NUM05                     PIC 9(3) COMP-3.
+           05 FILLER                       PIC X(1) VALUE 'X'.
+           05 WS-NUM06                     PIC S9(3) COMP-3.
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEIS DE TRABALHO                                        *
+      *--------------------------------------------------------------*  00210008
+       77  WS-CONT                         PIC S9(3).                   00210308
+      *
+      *--------------------------------------------------------------*  00211007
+       PROCEDURE                           DIVISION.                    00220004
+      *--------------------------------------------------------------*  00230004
+       0000-EX012P09.
+            OPEN OUTPUT NUMFILE
+            MOVE -10     TO  WS-CONT
+            PERFORM UNTIL WS-CONT > 10
+               MOVE WS-CONT TO WS-NUM01
+                               WS-NUM02
+                               WS-NUM03
+                               WS-NUM04
+                               WS-NUM05
+                               WS-NUM06
+               WRITE REG-NUMFILE FROM WS-REG-NUMFILE
+               ADD 1 TO WS-CONT
+            END-PERFORM
+            CLOSE NUMFILE
+            STOP RUN
+            .

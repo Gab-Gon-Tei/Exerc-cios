@@ -1,0 +1,423 @@
+      *----------------------------------------------------------------*
+       IDENTIFICATION                      DIVISION.
+      *----------------------------------------------------------------*
+       PROGRAM-ID.                         EX004P23.
+       AUTHOR.                             GABRIEL.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       ENVIRONMENT                         DIVISION.
+      *----------------------------------------------------------------*
+       CONFIGURATION                       SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT                        SECTION.
+       FILE-CONTROL.
+           SELECT MOVPRDD4 ASSIGN          TO MOVPRDD4
+           FILE STATUS IS FS-MOVPRDD4
+           .
+      *----------------------------------------------------------------*
+       DATA                                DIVISION.
+      *----------------------------------------------------------------*
+       FILE                                SECTION.
+      *----------------------------------------------------------------*
+       FD  MOVPRDD4
+           RECORDING MODE IS F
+           .
+           COPY BK002D4 REPLACING ==::== BY ====.
+
+      *----------------------------------------------------------------*
+       WORKING-STORAGE                     SECTION.
+      *----------------------------------------------------------------*
+      *                 VARIAVEIS ESPELHO                              *
+      *----------------------------------------------------------------*
+      * BOOK DA VARIAVEL ESPELHO
+           COPY BK002D4 REPLACING ==::== BY ==WS-==.
+      * BOOK DAS VARIAVEIS DE CALCULO DE TEMPO
+           COPY VARDATA.
+           COPY VARPROSS.
+      *BOOK DAS VARIAVEIS HOSPEDEIRAS
+           EXEC SQL
+              INCLUDE BK002TP
+           END-EXEC.
+      * INDICADORES DA TABELA TBPRODUTO
+       01  INDICADORES.
+           05 ICODPROD                     PIC S9(4) COMP.
+           05 IDESCPROD                    PIC S9(4) COMP.
+           05 IUNIDPROD                    PIC S9(4) COMP.
+           05 ILOCALPROD                   PIC S9(4) COMP.
+           05 IQTDEST                      PIC S9(4) COMP.
+           05 IQTDMAX                      PIC S9(4) COMP.
+           05 IQTDMIN                      PIC S9(4) COMP.
+           05 IPRECOCOMPRA                 PIC S9(4) COMP.
+           05 IPRECOVENDA                  PIC S9(4) COMP.
+           05 IPERCOMIS                    PIC S9(4) COMP.
+      *BOOK DAS VARIAVEIS PARA USO DO SQL
+           EXEC SQL
+              INCLUDE SQLCA
+           END-EXEC.
+
+      *----------------------------------------------------------------*
+      *                 VARIAVEIS DE TRABALHO                          *
+      *----------------------------------------------------------------*
+       01  WS-CONTADORES-COMP.
+           05 WS-CTLIDO                    PIC 9(05) COMP.
+           05 WS-CTLIDOPROD                PIC 9(05) COMP.
+           05 WS-CTEXC                     PIC 9(05) COMP.
+           05 WS-CTINV                     PIC 9(05) COMP.
+           05 WS-CTALT                     PIC 9(05) COMP.
+           05 WS-CTCURSOR                  PIC 9(05) COMP.
+
+       01  WS-CONTADORES-FORMATADOS.
+           05 WS-CTLIDO-F                  PIC ZZ.ZZ9.
+           05 WS-CTLIDOPROD-F              PIC ZZ.ZZ9.
+           05 WS-CTEXC-F                   PIC ZZ.ZZ9.
+           05 WS-CTINV-F                   PIC ZZ.ZZ9.
+           05 WS-CTALT-F                   PIC ZZ.ZZ9.
+           05 WS-CTCURSOR-F                PIC ZZ.ZZ9.
+
+      *VARIAVEIS DE FILE STATUS
+       01  FS-MOVPRDD4                     PIC X(02).
+           88 SUCESSO-MOVPRDD4             VALUE '00'.
+           88 FIM-ARQ-MOVPRDD4             VALUE '10'.
+
+       77  WS-SQLCODE                      PIC +9(09).
+       77  WS-MSG                          PIC X(60).
+       77  WS-FS                           PIC X(02).
+      *----------------------------------------------------------------*
+       PROCEDURE                           DIVISION.
+      *----------------------------------------------------------------*
+      *0000-EX004P23.
+           PERFORM 1000-INICIALIZAR
+           PERFORM 3000-PROCESSAR
+               UNTIL FIM-ARQ-MOVPRDD4
+           PERFORM 4000-TERMINO
+           GOBACK
+           .
+      *
+       1000-INICIALIZAR.
+           ACCEPT WS-HORARIO-INICIAL       FROM TIME
+           INITIALIZE WS-CONTADORES-COMP
+
+           OPEN INPUT MOVPRDD4
+           IF NOT SUCESSO-MOVPRDD4
+              MOVE "ERRO ABERTURA MOVPRDD4" TO WS-MSG
+              MOVE FS-MOVPRDD4             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+
+           EXEC SQL
+               DECLARE MANUTENCAO CURSOR WITH HOLD FOR
+                   SELECT CODPROD
+                         ,DESCPROD
+                         ,UNIDPROD
+                         ,LOCALPROD
+                         ,QTDEST
+                         ,QTDMAX
+                         ,QTDMIN
+                         ,PRECOCOMPRA
+                         ,PRECOVENDA
+                         ,PERCOMIS
+                   FROM TBPRODUTO
+                   WHERE QTDEST < QTDMIN
+                   FOR UPDATE OF
+                          CODPROD
+                         ,DESCPROD
+                         ,UNIDPROD
+                         ,LOCALPROD
+                         ,QTDEST
+                         ,QTDMAX
+                         ,QTDMIN
+                         ,PRECOCOMPRA
+                         ,PRECOVENDA
+                         ,PERCOMIS
+           END-EXEC
+
+
+           PERFORM 2000-LER-MOVPRDD4
+           .
+       2000-LER-MOVPRDD4.
+           READ MOVPRDD4                   INTO WS-REG-MOVPRDD4
+           IF SUCESSO-MOVPRDD4
+              ADD 1                        TO WS-CTLIDO
+           ELSE
+               IF NOT FIM-ARQ-MOVPRDD4
+               MOVE "ERRO LEITURA MOVPRDD4" TO WS-MSG
+               MOVE FS-MOVPRDD4            TO WS-FS
+               GO TO 9000-ERRO
+               END-IF
+           END-IF
+           .
+       3000-PROCESSAR.
+           IF WS-TIPOMOVTO-D4 = 'A' OR 'E'
+              MOVE ZERO                 TO WS-CTLIDOPROD
+              EXEC SQL
+                  OPEN MANUTENCAO
+              END-EXEC
+              IF SQLCODE NOT = 0
+                 MOVE "ERRO ABERTURA CURSOR"
+                                           TO WS-MSG
+                 MOVE SQLCODE              TO WS-SQLCODE
+                 GO TO 9000-ERRO-DB2
+              END-IF
+
+              PERFORM 3100-LER-MANUTENCAO WITH TEST AFTER
+                      UNTIL WS-CODPROD-D4 = CODPROD OR SQLCODE = +100
+
+              IF SQLCODE = 0
+                 MOVE WS-CTLIDOPROD        TO WS-CTLIDOPROD-F
+                 DISPLAY "PARA LOCALIZAR PRODUTO " WS-CODPROD-D4
+                         "FORAM NECESSARIOS LER " WS-CTLIDOPROD
+                         "REGISTROS DO CURSOR"
+                 EVALUATE WS-TIPOMOVTO-D4
+                 WHEN 'E' PERFORM 3200-EXCLUSAO
+                 WHEN 'A' PERFORM 3300-ALTERACAO
+                 WHEN OTHER
+                      ADD 1               TO WS-CTINV
+                END-EVALUATE
+              END-IF
+
+              EXEC SQL
+                  CLOSE MANUTENCAO
+              END-EXEC
+              IF SQLCODE NOT = 0
+                 MOVE "ERRO ABERTURA CURSOR"
+                                           TO WS-MSG
+                 MOVE SQLCODE              TO WS-SQLCODE
+                 GO TO 9000-ERRO-DB2
+              END-IF
+           ELSE
+              ADD 1                        TO WS-CTINV
+           END-IF
+
+           PERFORM 2000-LER-MOVPRDD4
+           .
+       3100-LER-MANUTENCAO.
+           EXEC SQL
+               FETCH MANUTENCAO
+               INTO :CODPROD
+                   ,:DESCPROD
+                   ,:UNIDPROD              :IUNIDPROD
+                   ,:LOCALPROD             :ILOCALPROD
+                   ,:QTDEST                :IQTDEST
+                   ,:QTDMAX                :IQTDMAX
+                   ,:QTDMIN                :IQTDMIN
+                   ,:PRECOCOMPRA           :IPRECOCOMPRA
+                   ,:PRECOVENDA            :IPRECOVENDA
+                   ,:PERCOMIS              :IPERCOMIS
+           END-EXEC
+
+           IF SQLCODE = 0
+              PERFORM 9000-TRATA-INDICATOR
+              ADD 1                        TO WS-CTCURSOR
+              ADD 1                        TO WS-CTLIDOPROD
+           ELSE
+              IF SQLCODE NOT = 100
+                 MOVE "ERRO NA LEITURA DO CURSOR"
+                                           TO WS-MSG
+                 MOVE SQLCODE              TO WS-SQLCODE
+                 GO TO 9000-ERRO-DB2
+              END-IF
+           END-IF
+      *    PERFORM 2000-LER-MOVPRDD4
+           .
+
+       3200-EXCLUSAO.
+           EXEC SQL
+              DELETE FROM TBPRODUTO
+              WHERE CURRENT OF MANUTENCAO
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0
+                 ADD 1 TO WS-CTEXC
+                 EXEC SQL COMMIT END-EXEC
+              WHEN +100
+                 ADD 1 TO WS-CTINV
+              WHEN OTHER
+                   MOVE "ERRO DELETE NA TABELA TBPRODUTO"
+                                           TO WS-MSG
+                   MOVE SQLCODE            TO WS-SQLCODE
+                   GO TO 9000-ERRO-DB2
+           END-EVALUATE
+           .
+
+       3300-ALTERACAO.
+      * TESTE DA VARIAVEL ESPELHO
+           IF WS-DESCPROD-D4 NOT = SPACES
+              MOVE +20                     TO DESCPROD-LEN
+              MOVE WS-DESCPROD-D4          TO DESCPROD-TEXT
+           END-IF
+
+           IF WS-UNIDPROD-D4 NOT = SPACES
+              MOVE WS-UNIDPROD-D4          TO UNIDPROD
+           END-IF
+
+           IF WS-LOCALPROD-D4 NOT = SPACES
+              MOVE WS-LOCALPROD-D4         TO LOCALPROD
+           END-IF
+
+           IF WS-QTDEST-D4 IS NUMERIC
+              MOVE WS-QTDEST-D4            TO QTDEST
+           END-IF
+
+           IF WS-QTDMAX-D4 IS NUMERIC
+              MOVE WS-QTDMAX-D4            TO QTDMAX
+           END-IF
+
+           IF WS-QTDMIN-D4 IS NUMERIC
+              MOVE WS-QTDMIN-D4            TO QTDMIN
+           END-IF
+
+           IF WS-PRECOCOMPRA-D4 IS NUMERIC
+              MOVE WS-PRECOCOMPRA-D4       TO PRECOCOMPRA
+           END-IF
+
+           IF WS-PRECOVENDA-D4  IS NUMERIC
+              MOVE WS-PRECOVENDA-D4        TO PRECOVENDA
+           END-IF
+
+           IF WS-PERCOMIS-D4    IS NUMERIC
+              MOVE WS-PERCOMIS-D4          TO PERCOMIS
+           END-IF
+
+           EXEC SQL
+              UPDATE TBPRODUTO
+              SET DESCPROD     = :DESCPROD
+                 ,UNIDPROD     = :UNIDPROD
+                 ,LOCALPROD    = :LOCALPROD
+                 ,QTDEST       = :QTDEST
+                 ,QTDMAX       = :QTDMAX
+                 ,QTDMIN       = :QTDMIN
+                 ,PRECOCOMPRA  = :PRECOCOMPRA
+                 ,PRECOVENDA   = :PRECOVENDA
+                 ,PERCOMIS     = :PERCOMIS
+              WHERE CURRENT OF MANUTENCAO
+           END-EXEC
+
+           EVALUATE SQLCODE
+              WHEN 0 ADD 1 TO WS-CTALT
+              WHEN +100 ADD 1 TO WS-CTINV
+              WHEN -545 ADD 1 TO WS-CTINV
+              WHEN OTHER
+                   MOVE "ERRO UPDATE NA TABELA TBPRODUTO"
+                                           TO WS-MSG
+                   MOVE SQLCODE            TO WS-SQLCODE
+                   GO TO 9000-ERRO-DB2
+           END-EVALUATE
+           .
+       4000-TERMINO.
+           PERFORM 4000-FECHAMENTO-ARQUIVOS
+
+           ACCEPT WS-HORARIO-FINAL    FROM TIME
+           PERFORM 9000-TEMPO-DE-PROCESSAMENTO
+
+           MOVE WS-CTLIDO                  TO WS-CTLIDO-F
+           MOVE WS-CTLIDOPROD              TO WS-CTLIDOPROD-F
+           MOVE WS-CTEXC                   TO WS-CTEXC-F
+           MOVE WS-CTINV                   TO WS-CTINV-F
+           MOVE WS-CTCURSOR                TO WS-CTCURSOR-F
+           MOVE WS-CTALT                   TO WS-CTALT-F
+
+           PERFORM 9000-IMPRIME-DATA
+           PERFORM 5000-EXIBIR-RESULTADOS
+           .
+       5000-EXIBIR-RESULTADOS.
+           DISPLAY "==================================================="
+           DISPLAY "        ESTATISTICA FINAL DE PROCESSAMENTO         "
+           DISPLAY "==================================================="
+           DISPLAY " QTDE. MOVIMENTOS LIDOS........: " WS-CTLIDO-F
+           DISPLAY " QTDE. PRODUTOS LIDOS CURSOR...: " WS-CTLIDOPROD-F  OD-F
+           DISPLAY " QTDE. PRODUTOS EXCLUIDOS......: " WS-CTEXC-F
+           DISPLAY " QTDE. PRODUTOS ALTERADOS......: " WS-CTALT-F
+           DISPLAY " QTDE. MOVIMENTOS INVALIDOS....: " WS-CTINV-F
+           DISPLAY "==================================================="
+           DISPLAY " TEMPO TOTAL DE PROCESSAMENTO  : "
+                                               WS-TEMPO-PROCESSAMENTO-F
+           DISPLAY "==================================================="
+           DISPLAY "                                                   "
+           DISPLAY "                                                   "
+           DISPLAY "                        *             *            "
+           DISPLAY "           *                                       "
+           DISPLAY "          *                                        "
+           DISPLAY "                         *                         "
+           DISPLAY "   *        *                                      "
+           DISPLAY "                                        *     *    "
+           DISPLAY "                                *                  "
+           DISPLAY "                 _     _                           "
+           DISPLAY "   *            /_|   |_\                *         "
+           DISPLAY "           *   //||   ||\\     *                   "
+           DISPLAY "              // ||   || \\                        "
+           DISPLAY "             //  ||___||  \\        *              "
+           DISPLAY "  *    *    /     |   |     \    _           *     "
+           DISPLAY "           /    __|   |__    \  /_\                "
+           DISPLAY "          / .--~  |   |  ~--. \|   |               "
+           DISPLAY "         /.~ __\  |   |  /   ~.|   |    *          "
+           DISPLAY "        .~  `=='\ |   | /   _.-'.  |               "
+           DISPLAY "       /  /      \|   |/ .-~    _.-'               "
+           DISPLAY "      |           +---+  \  _.-~  |                "
+           DISPLAY "  *   `=----.____/  #  \____.----='         *      "
+           DISPLAY "       [::::::::|  (_)  |::::::::]                 "
+           DISPLAY "      .=----~~~~~\     /~~~~~----=.            *   "
+           DISPLAY "      |          /`---'\          |      *         "
+           DISPLAY "       \  \     /       \     /  /                 "
+           DISPLAY "        `.     /         \     .'                  "
+           DISPLAY "          `.  /._________.\  .'          *    *    "
+           DISPLAY "         *  `--._________.--'                      "
+           DISPLAY "   *                                               "
+           DISPLAY "        -NEVER TELL ME THE ODDS- *        *        "
+           DISPLAY "    *                   *                          "
+           DISPLAY "                                                   "
+           DISPLAY "             *         *             *             "
+           DISPLAY "  *                                                "
+           .
+       4000-FECHAMENTO-ARQUIVOS.
+      *FECHAMENTO DO MOVPRDD4
+           CLOSE MOVPRDD4
+           IF FS-MOVPRDD4 NOT = '00'
+              MOVE "ERRO FECHAMENTO MOVPRDD4" TO WS-MSG
+              MOVE FS-MOVPRDD4             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           .
+
+       9000-TRATA-INDICATOR.
+      * TESTE DOS INDICADORES
+           IF IUNIDPROD LESS ZERO
+              MOVE SPACES                  TO UNIDPROD
+           END-IF
+
+           IF ILOCALPROD LESS ZERO
+              MOVE SPACES                  TO LOCALPROD
+           END-IF
+
+           IF QTDEST LESS ZERO
+              MOVE ZEROS                   TO QTDEST
+           END-IF
+
+           IF IQTDMAX LESS ZERO
+              MOVE ZEROS                   TO QTDMAX
+           END-IF
+
+           IF IQTDMIN LESS ZERO
+              MOVE ZEROS                   TO QTDMIN
+           END-IF
+
+           IF IPRECOCOMPRA LESS ZERO
+              MOVE ZEROS                   TO PRECOCOMPRA
+           END-IF
+
+           IF IPRECOVENDA  LESS ZERO
+              MOVE ZEROS                   TO PRECOVENDA
+           END-IF
+
+           IF IPERCOMIS    LESS ZERO
+              MOVE ZEROS                   TO PERCOMIS
+           END-IF
+           .
+      *----------------------------------------------------------------*
+           COPY ROTERRO.
+           COPY ROTERROD.
+           COPY ROTPROSS.
+           COPY ROTDATA.
+

@@ -1,0 +1,27 @@
+      *----------------------------------------------------------------*
+      * BOOK DE ARQUIVO     - BOOK DE ENTRADA                            
+      * NOME DO BOOK        - BMOVTOEST                             
+      *----------------------------------------------------------------*
+       01  WS-REG-MOVTOEST.
+           05  WS-TIPO-REG-MOVTO           PIC X(01).
+           05  FILLER                      PIC X(32).      
+
+       01  WS-REG-MOVTOEST-HEADER REDEFINES WS-REG-MOVTOEST.
+           05  FILLER                      PIC X(01).
+           05  WS-SIGLA-SYS-CAD            PIC X(05).
+           05  WS-ANO-MES-REF-CAD          PIC X(06).
+           05  FILLER                      PIC X(21).
+
+       01  WS-REG-MOVTOEST-DATA REDEFINES WS-REG-MOVTOEST.
+           05  FILLER                      PIC X(01).
+           05  WS-NUMMOVTO                 PIC 9(08).
+           05  WS-DATAMOVTO                PIC 9(08).
+           05  WS-HORAMOVTO                PIC 9(06).
+           05  WS-CODPRODMOVTO             PIC 9(04).
+           05  WS-TIPOMOVTO                PIC X(01).
+           05  WS-QTDMOVTO                 PIC 9(08) COMP-3.
+
+       01  WS-REG-MOVTOEST-TRAILER REDEFINES WS-REG-MOVTOEST.
+           05  FILLER                      PIC X(01).
+           05  WS-QTDREG-MOVTOEST          PIC 9(05).
+           05  FILLER                      PIC X(75).

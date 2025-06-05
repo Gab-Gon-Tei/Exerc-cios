@@ -1,0 +1,52 @@
+      *----------------------------------------------------------------*00020001
+      * BOOK DE ARQUIVO     - IMPRIME DATA POR EXTENSO                  00030001
+      * NOME DO BOOK        - DATAEXT                                   00040001
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        00050001
+      * NOME DO ARQUIVO     - DATAEXT                                   00060001
+      *----------------------------------------------------------------*00080001
+       9000-IMPRIME-DATA.                                               00090003
+           ACCEPT WS-DATA-SISTEMA FROM DATE                             00100008
+           MOVE WS-DIA                     TO WS-DIA-F                  00101012
+           MOVE WS-MES                     TO WS-MES-F                  00102012
+           MOVE WS-ANO                     TO WS-ANO-F                  00103012
+           ACCEPT WS-DATA-JUL FROM DAY                                  00110003
+           ACCEPT WS-DIA-SEMANA FROM DAY-OF-WEEK                        00120003
+      *                                                                 00130003
+           EVALUATE WS-MES OF WS-DATA-SISTEMA                           00140005
+              WHEN 01 MOVE 'JANEIRO'       TO WS-MES-EXT                00150011
+              WHEN 02 MOVE 'FEVEREIRO'     TO WS-MES-EXT                00160011
+              WHEN 03 MOVE 'MARCO'         TO WS-MES-EXT                00170011
+              WHEN 04 MOVE 'ABRIL'         TO WS-MES-EXT                00180011
+              WHEN 05 MOVE 'MAIO'          TO WS-MES-EXT                00190011
+              WHEN 06 MOVE 'JUNHO'         TO WS-MES-EXT                00200011
+              WHEN 07 MOVE 'JULHO'         TO WS-MES-EXT                00210011
+              WHEN 08 MOVE 'AGOSTO'        TO WS-MES-EXT                00220011
+              WHEN 09 MOVE 'SETEMBRO'      TO WS-MES-EXT                00230011
+              WHEN 10 MOVE 'OUTUBRO'       TO WS-MES-EXT                00240011
+              WHEN 11 MOVE 'NOVEMBRO'      TO WS-MES-EXT                00250011
+              WHEN 12 MOVE 'DEZEMBRO'      TO WS-MES-EXT                00260011
+           END-EVALUATE                                                 00270005
+           EVALUATE WS-DIA-SEMANA                                       00271012
+              WHEN 1 MOVE 'SEGUNDA'        TO WS-DIA-SEMANA-F           00272012
+              WHEN 2 MOVE 'TERCA'          TO WS-DIA-SEMANA-F           00273012
+              WHEN 3 MOVE 'QUARTA'         TO WS-DIA-SEMANA-F           00274012
+              WHEN 4 MOVE 'QUINTA'         TO WS-DIA-SEMANA-F           00275012
+              WHEN 5 MOVE 'SEXTA'          TO WS-DIA-SEMANA-F           00276012
+              WHEN 6 MOVE 'SABADOA'        TO WS-DIA-SEMANA-F           00277012
+              WHEN 7 MOVE 'DOMINGO'        TO WS-DIA-SEMANA-F           00278012
+           END-EVALUATE                                                 00279012
+           DISPLAY '**************************************************' 00280005
+           DISPLAY 'DATA GREGORIANA 1 - ' WS-DATA-SISTEMA-F             00290006
+           DISPLAY 'DATA GREGORIANA 2 - ' WS-DIA OF                     00300005
+                                          WS-DATA-SISTEMA               00310005
+                                        ' DE '                          00320005
+                                          WS-MES-EXT                    00330005
+                                        ' DE 20'                        00340012
+                                          WS-ANO OF                     00350005
+                                          WS-DATA-SISTEMA               00360005
+           DISPLAY 'DATA JULIANA       - ' WS-DIA-J                     00370011
+                                        ' DE 20'                        00380012
+                                          WS-ANO-J                      00390011
+           DISPLAY 'DIA DA SEMANA         - ' WS-DIA-SEMANA-F           00400009
+           DISPLAY '*******************************************'        00410009
+           .                                                            00420010

@@ -1,0 +1,11 @@
+      *----------------------------------------------------------------*
+      * BOOK DE ARQUIVO     - PSNEW                            
+      * NOME DO BOOK        - REG-PSNEW                                    
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        
+      * NOME DO ARQUIVO     - PSNEW                                    
+      * TAMANHO DO REGISTRO - 42 BYTES                                  
+      *----------------------------------------------------------------*
+       01  REG-PSNEW.                                                
+           05 CODPS-N                      PIC X(05).
+           05 DESCPS-N                     PIC X(30). 
+           05 VALORPS-N                    PIC 9(05)V99.

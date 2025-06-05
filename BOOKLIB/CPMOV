@@ -1,0 +1,12 @@
+      *----------------------------------------------------------------*
+      * BOOK DE ARQUIVO     - PSMOV                            
+      * NOME DO BOOK        - REG-PSMOV                                    
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        
+      * NOME DO ARQUIVO     - PSMOV                                    
+      * TAMANHO DO REGISTRO - 43 BYTES                                  
+      *----------------------------------------------------------------*
+       01  REG-PSMOV.                                                
+           05 CODPS-M                      PIC X(05).
+           05 DESCPS-M                     PIC X(30). 
+           05 VALORPS-M                    PIC 9(05)V99.
+           05 TIPOMOV-M                    PIC X(01).  

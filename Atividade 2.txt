@@ -1,0 +1,27 @@
+Parágrafo 0000-EEXXNN03
+	Executar o parágrafo 1000-inicializar
+	executar o parágrafo 2000-processar até que a variável ws-fim seja igual a "s"
+	executar o parágrafo 3000-termino
+	parar o programa
+
+parágrafo 1000-inicializar
+	Mova "n" para a variável ws-fim
+	mova 0 para as variaveis ws-ctlido, ws-cttipo-1, ws-cttipo-2 e ws-cttipo-3
+	executar o parágrafo 1500-ler-sysin
+
+parágrafo 1500-ler-sysin
+	receber dado da sysin e armazenar na variável ws-tipo
+	se a variável ws-tipo for igual a 0, mova "s" para a variável
+	senão, acumule na variável ws-ctlido
+	
+parágrafo 2000-processar
+	se a variável ws-tipo for igual a 1, adicione 1 ao valor da variável ws-cttipo-1;
+	senão, se a variável ws-tipo for igual a 2, adicione 1 ao valor da variável ws-cttipo-2;
+	senão, adicione 1 ao valor da variável ws-tipo-3
+	
+parágrafo 3000-termino
+	exibir "TOTAL DE TIPOS LIDOS = " ws-ctlido
+	exibir "QTDE. ITENS TIPO 1 = " 	ws-cttipo-1
+	exibir "QTDE. ITENS TIPO 2 = " 	ws-cttipo-2
+	exibir "QTDE. ITENS TIPO 3 = " 	ws-cttipo-3
+	exibir "TERMINO NORMAL DO EEXXNN03"

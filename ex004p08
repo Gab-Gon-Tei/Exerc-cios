@@ -1,0 +1,198 @@
+      *----------------------------------------------------------------*
+       IDENTIFICATION                      DIVISION.
+      *----------------------------------------------------------------*
+       PROGRAM-ID.                         EX004P08.
+       AUTHOR.                             GABRIEL.
+      *----------------------------------------------------------------*
+      *----------------------------------------------------------------*
+       ENVIRONMENT                         DIVISION.
+      *----------------------------------------------------------------*
+       CONFIGURATION                       SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT                        SECTION.
+       FILE-CONTROL.
+           SELECT CADCLI ASSIGN            TO UT-S-CADCLI
+           FILE STATUS IS FS-CADCLI
+           .
+           SELECT TROCAR ASSIGN            TO UT-S-TROCAR
+           FILE STATUS IS FS-TROCAR
+           .
+      *----------------------------------------------------------------*
+       DATA                                DIVISION.
+      *----------------------------------------------------------------*
+       FILE                                SECTION.
+      *----------------------------------------------------------------*
+       FD  CADCLI
+           LABEL RECORD IS STANDARD
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F
+           RECORD CONTAINS 94 CHARACTERS
+           DATA RECORD IS REG-CADCLI
+           .
+           COPY CADCLI REPLACING ==::== BY ====.
+       FD  TROCAR
+           LABEL RECORD IS STANDARD
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F
+           RECORD CONTAINS 94 CHARACTERS
+           DATA RECORD IS REG-CADCLI
+           .
+           COPY TROCAR REPLACING ==::== BY ====.
+      *----------------------------------------------------------------*
+       WORKING-STORAGE                     SECTION.
+      *----------------------------------------------------------------*
+      *              VARIAVEIS ESPELHO
+      *----------------------------------------------------------------*
+           COPY CADCLI REPLACING ==::== BY ==WS-==.
+           COPY TROCAR REPLACING ==::== BY ==WS-==.
+      *----------------------------------------------------------------*
+      *    VARIAVEIS DE TRABALHO
+      *----------------------------------------------------------------*
+       77  WS-VAL-GAS                      PIC 99V99
+                                                   VALUE 6,50.
+       77  WS-VAL-KW                       PIC 99V99
+                                                   VALUE 0,70.
+       77  WS-GAS-DIA                      PIC 99V99.
+       77  WS-KW-KM                        PIC 99V99.
+       77  WS-KW-DIA                       PIC 99V99.
+       77  WS-RES-INV                      PIC X(15)
+                                                   VALUE
+           "INVIABILIZADO".
+       77  WS-RES-APOT                     PIC X(30)
+                                                   VALUE
+           "CLIENTE EM ALTO POTENCIAL".
+       77  WS-RES-POT                     PIC X(30)
+                                                   VALUE
+           "CLIENTE EM POTENCIAL".
+       77  WS-RES-BPOT                     PIC X(30)
+                                                   VALUE
+           "CLIENTE EM BAIXO POTENCIAL".
+      *----------------------------------------------------------------*
+      *VARIAVEIS DE FILE STATUS
+      *----------------------------------------------------------------*
+       77  FS-CADCLI                       PIC X(02).
+       77  FS-TROCAR                       PIC X(02).
+      *----------------------------------------------------------------*
+      * MENSAGENS DE ERRO
+      *----------------------------------------------------------------*
+       77  WS-MSG                          PIC X(60).
+       77  WS-FS                           PIC X(02).
+
+       77  WS-MSG01                        PIC X(60)
+                                                   VALUE
+           "ERRO DE ABERTURA CADCLI".
+       77  WS-MSG02                        PIC X(60)
+                                                   VALUE
+           "ERRO DE ABERTURA TROCAR".
+       77  WS-MSG03                        PIC X(60)
+                                                   VALUE
+           "ERRO DE LEITURA CADCLI".
+       77  WS-MSG04                        PIC X(60)
+                                                   VALUE
+           "ERRO DE GRAVACAO TROCAR".
+       77  WS-MSG05                        PIC X(60)
+                                                   VALUE
+           "ERRO DE FECHAMENTO CADCLI".
+       77  WS-MSG06                        PIC X(60)
+                                                   VALUE
+           "ERRO DE FECHAMENTO TROCAR".
+      *----------------------------------------------------------------*
+       PROCEDURE                           DIVISION.
+      *----------------------------------------------------------------*
+       0000-EX004P08.
+           PERFORM 1000-INICIALIZAR
+           PERFORM 2000-PROCESSAR
+               UNTIL FS-CADCLI = '10'
+           PERFORM 3000-TERMINO
+           STOP RUN
+           .
+      *
+       1000-INICIALIZAR.
+           OPEN INPUT CADCLI
+           IF FS-CADCLI NOT = '00'
+              MOVE WS-MSG01                TO WS-MSG
+              MOVE FS-CADCLI               TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           OPEN OUTPUT TROCAR
+           IF FS-TROCAR NOT = '00'
+              MOVE WS-MSG02                TO WS-MSG
+              MOVE FS-TROCAR               TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           PERFORM 1500-LER-CADCLI
+           .
+      *
+       1500-LER-CADCLI.
+           READ CADCLI INTO WS-REG-CADCLI
+           IF FS-CADCLI = '00'
+              CONTINUE
+           ELSE
+              IF FS-CADCLI NOT = '10'
+              MOVE WS-MSG03                TO WS-MSG
+              MOVE FS-CADCLI               TO WS-FS
+              GO TO 9000-ERRO
+              END-IF
+           END-IF
+           .
+       2000-PROCESSAR.
+      *ENCONTRANDO VARIAVEL CUSTO GASOLINA
+           COMPUTE WS-GAS-DIA = (WS-DIS-MES-C / WS-LIT-MES)
+                                * WS-VAL-GAS
+           COMPUTE WS-GAS-MES = WS-GAS-DIA * 30
+           COMPUTE WS-GAS-ANO = WS-GAS-MES * 12
+      *ENCONTRANDO VARIAVEL CUSTO KW
+           COMPUTE WS-KW-KM = (90 / 12) * WS-VAL-KW
+           COMPUTE WS-KW-DIA = WS-DIS-DIA-C * WS-KW-KM
+           COMPUTE WS-KW-MES = WS-KW-DIA * 30
+           COMPUTE WS-KW-ANO = WS-KW-MES * 12
+
+      *ENCONTRANDO VALOR DE ECONOMIA EM PORCENTAGEM
+           COMPUTE WS-ECON-VAL =(WS-KW-ANO / WS-GAS-ANO) * 100
+
+      *DEFININDO O RESULTADO
+           EVALUATE TRUE
+              WHEN WS-DIS-DIA-C > 200
+                   MOVE WS-RES-INV         TO WS-RESULT
+              WHEN WS-ECON-VAL >= 70
+                   MOVE WS-RES-APOT        TO WS-RESULT
+              WHEN WS-ECON-VAL >= 40 AND WS-ECON-VAL < 70
+                   MOVE WS-RES-POT         TO WS-RESULT
+              WHEN WS-ECON-VAL < 40
+                   MOVE WS-RES-BPOT        TO WS-RESULT
+      *MOVENDO INFORMACOES
+           MOVE WS-NOMECLI-C               TO WS-NOMECLI-T
+           MOVE WS-DIS-DIA-C               TO WS-DIS-DIA-T
+           MOVE WS-DIS-MES-C               TO WS-DIS-MES-T
+      *
+           WRITE REG-TROCAR FROM WS-REG-TROCAR
+           IF FS-TROCAR = '00'
+              CONTINUE
+           ELSE
+              MOVE WS-MSG04                TO WS-MSG
+              MOVE FS-TROCAR               TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+
+           PERFORM 1500-LER-CADCLI
+           .
+      *
+
+       3000-TERMINO.
+           CLOSE CADCLI
+           IF FS-CADCLI NOT = '00'
+              MOVE WS-MSG05                TO WS-MSG
+              MOVE FS-CADCLI               TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+
+           CLOSE TROCAR
+           IF FS-TROCAR NOT = '00'
+              MOVE WS-MSG06                TO WS-MSG
+              MOVE FS-TROCAR               TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           .
+       COPY ROTERRO.

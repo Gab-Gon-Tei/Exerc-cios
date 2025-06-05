@@ -1,0 +1,56 @@
+//FSYS004C JOB 'FSYS004',MSGCLASS=X,CLASS=C,NOTIFY=&SYSUID,TIME=(0,10)
+//JOBLIB DD DISP=SHR,DSN=FS.GERAL.LOADLIB
+//*******************************************************************
+//* EXCLUIR O VCADPRD E RECRIA-LO
+//*******************************************************************
+//STEP001   EXEC PGM=IDCAMS
+//SYSPRINT  DD   SYSOUT=*
+//SYSIN     DD   *
+ DELETE FS.FSYS004.VCADPRD PURGE CLUSTER
+ IF MAX=8 THEN SET MAXCC=0
+ DEFINE CLUSTER                                  -
+ (NAME (FS.FSYS004.VCADPRD)                      -
+  VOL (PR39X7)                                   -
+  TRK (04,0)                                     -
+  RECORDSIZE (69,69)                             -
+  KEYS (04,0)                                    -
+  SHAREOPTIONS (2,3))                            -
+  DATA (NAME (FS.FSYS004.VCADPRD.DATA))          -
+  INDEX (NAME (FS.FSYS004.VCADPRD.INDEX))                   
+//*******************************************************************
+//* CARREGA O VCADPRD COM BASE NO ARQUIVO NO ARQUIVO CADPRD
+//* EXECUTAR O PROGRAMA EX004P18 PARA DAR A CARGA 
+//*******************************************************************
+//STEP002   EXEC PGM=EX004P18,COND=(0,NE)
+//VCADPRD   DD  DSN=FS.FSYS004.VCADPRD,DISP=SHR
+//CADPRD    DD  DSN=FS.FSYS998.CADPRD,DISP=SHR
+//*******************************************************************
+//* IMPRIMIR O ARQUIVO VCADPRD COM O UTILITARIO IDCAMS
+//*******************************************************************
+//STEP003   EXEC PGM=IDCAMS,COND=(0,NE)
+//STEPLIB   DD  DSN=FS.FSYS004.LOADLIB,DISP=SHR
+//SYSPRINT  DD  SYSOUT=*
+//VCADPRD   DD  DSN=FS.FSYS004.VCADPRD,DISP=SHR
+//SYSIN     DD  *
+ PRINT INFILE(VCADPRD) CHAR
+//*
+//*******************************************************************
+//* EXECUTAR O PROGRAMA EX004P18 PARA ATUALIZAR VCADPRD
+//*******************************************************************
+//STEP004   EXEC PGM=EX004P18,COND=(0,NE)
+//STEP004   DD  DSN=FS.GERAL.LOADLIB,DISP=SHR
+//VCADPRD   DD  DSN=FS.FSYS004.VCADPRD,DISP=SHR
+//MOVPRD    DD  DSN=FS.FSYS998.MOVPRD,DISP=SHR
+//RELOCOR   DD  SYSOUT=*
+//*
+//*******************************************************************
+//* VAMOS IMPRIMIR O ARQUIVO VCADPRD COM O UTILITARIO IDCAMS
+//*******************************************************************
+//STEP005   EXEC PGM=IDCAMS,COND=(0,NE)
+//STEPLIB   DD  DSN=FS.FSYS004.GERAL.LOADLIB,DISP=SHR
+//SYSPRINT  DD  SYSOUT=*
+//VCADPRD   DD  DSN=FS.FSYS004.VCADPRD,DISP=SHR
+//SYSIN     DD  *
+ PRINT INFILE(VCADPRD) CHAR
+//*
+//*******************************************************************

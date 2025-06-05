@@ -1,0 +1,20 @@
+      *----------------------------------------------------------------*
+      * BOOK DE ARQUIVO     - CADASTRO DE PRODUTOS
+      * NOME DO BOOK        - MOVPRDD4
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB
+      * NOME DO ARQUIVO     - BK001D4
+      * TAMANHO DO REGISTRO - 151 BYTES
+      *----------------------------------------------------------------*
+       01  ::REG-MOVPRDD4.
+           05 ::CODPROD-D4                   PIC X(04).
+           05 ::DESCPROD-D4                  PIC X(20).
+           05 ::UNIDPROD-D4                  PIC X(05).
+           05 ::LOCALPROD-D4                 PIC X(05).
+           05 ::QTDEST-D4                    PIC 9(05).
+           05 ::QTDMAX-D4                    PIC 9(05).
+           05 ::QTDMIN-D4                    PIC 9(05).
+           05 ::PRECOCOMPRA-D4               PIC 9(06)V99.
+           05 ::PRECOVENDA-D4                PIC 9(06)V99.
+           05 ::PERCOMIS-D4                  PIC 9(02)V99.
+           05 ::TIPOMOVTO-D4                 PIC X(01).
+

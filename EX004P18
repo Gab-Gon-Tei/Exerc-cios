@@ -1,0 +1,542 @@
+      *--------------------------------------------------------------*  
+       IDENTIFICATION                      DIVISION.                    
+      *--------------------------------------------------------------*  
+       PROGRAM-ID.                         EX004P18.                    
+       AUTHOR.                             GABRIEL.                      
+      *                                                                 
+      *--------------------------------------------------------------*  
+       ENVIRONMENT                         DIVISION.                    
+      *--------------------------------------------------------------*  
+       CONFIGURATION                       SECTION.                     
+       SPECIAL-NAMES.                                                   
+           DECIMAL-POINT IS COMMA. 
+       INPUT-OUTPUT                        SECTION.
+           FILE-CONTROL.
+           SELECT MOVPRD ASSIGN TO CADPRD
+           FILE STATUS IS FS-CADPRD
+           .
+           SELECT VCADPRD ASSIGN TO VCADPRD
+           ORGANIZATION IS INDEXED
+           ACCESS MODE IS SEQUENTIAL
+           FILE STATUS IS FS-VCADPRD
+           RECORD KEY IS CODPROD-V
+           .
+           SELECT RELOCOR ASSIGN TO RELOCOR
+           FILE STATUS IS FS-RELOCOR
+           .
+      *--------------------------------------------------------------*  
+       DATA                                DIVISION.                    
+      *--------------------------------------------------------------*
+       FILE                                SECTION.
+       FD  CADPRD
+           LABEL RECORDS ARE STANDARD
+           BLOCK CONTAINS 0 RECORDS
+           RECORDING MODE IS F
+           RECORD CONTAINS 70 CHARACTERS
+           DATA RECORD IS REG-CADPRD
+           .
+       01  REG-CADPRD.
+           05 CODPRD-M                     PIC X(04).
+           05 DESCPROD-M                   PIC X(20).
+           05 UNIDPROD-M                   PIC X(02).
+           05 LOCALPROD-M                  PIC X(05).
+           05 QTDEST-M                     PIC 9(05).
+           05 QTMAX-M                      PIC 9(05).
+           05 QTMIN-M                      PIC 9(05).
+           05 PRECOCOMPRA-M                PIC 9(06)V99.
+           05 PRECOVENDA-M                 PIC 9(06)V99.
+           05 PERCOMIS-M                   PIC 9(02)V99.
+           05 TIPOMOVTO-M                  PIC X(01).
+
+       FD  VCADPRD
+           RECORD CONTAINS 69 CHARACTERS
+           DATA RECORD IS REG-VCADPRD
+           .
+       01  REG-VCADPRD.
+           05 CODPROD-V                     PIC X(04).
+           05 DESCPROD-V                    PIC X(20).
+           05 UNIDPROD-V                    PIC X(02).
+           05 LOCALPROD-V                   PIC X(05).
+           05 QTDEST-V                      PIC 9(05).
+           05 QTMAX-V                       PIC 9(05).
+           05 QTMIN-V                       PIC 9(05).
+           05 PRECOCOMPRA-V                 PIC 9(06)V99.
+           05 PRECOVENDA-V                  PIC 9(06)V99.
+           05 PERCOMIS-V                    PIC 9(02)V99.
+
+       FD  RELOCOR
+           RECORDING MODE IS F
+           DATA RECORD IS REG-RELOCOR
+           .
+       01  REG-RELOCOR                     PIC X(132). 
+      *--------------------------------------------------------------*  
+       WORKING-STORAGE                     SECTION.                     
+      *--------------------------------------------------------------*  
+       01  WS-REG-CADPRD.
+           05 WS-CODPROD                     PIC X(04).
+           05 WS-DESCPROD                    PIC X(20).
+           05 WS-UNIDPROD                    PIC X(02).
+           05 WS-LOCALPROD                   PIC X(05).
+           05 WS-QTDEST                      PIC 9(05).
+           05 WS-QTMAX                       PIC 9(05).
+           05 WS-QTMIN                       PIC 9(05).
+           05 WS-PRECOCOMPRA                 PIC 9(06)V99.
+           05 WS-PRECOVENDA                  PIC 9(06)V99.
+           05 WS-PERCOMIS                    PIC 9(02)V99.
+           05 WS-TIPOMOVTO-M                 PIC X(01). 
+
+       01  WS-REG-VCADPRD.
+           05 WS-CODPROD-V                   PIC X(04).
+           05 WS-DESCPROD-V                  PIC X(20).
+           05 WS-UNIDPROD-V                  PIC X(02).
+           05 WS-LOCALPROD-V                 PIC X(05).
+           05 WS-QTDEST-V                    PIC 9(05).
+           05 WS-QTMAX-V                     PIC 9(05).
+           05 WS-QTMIN-V                     PIC 9(05).
+           05 WS-PRECOCOMPRA-V               PIC 9(06)V99.     
+           05 WS-PRECOVENDA-V                PIC 9(06)V99.                                           
+           05 WS-PERCOMIS-V                  PIC 9(02)V99.       
+
+       01  WS-TIME-SYS.
+           05 WS-HORA-SYS                    PIC 99.
+           05 WS-MIN-SYS                     PIC 99.
+           05 WS-SEG-SYS                     PIC 99.
+           05 FILLER                         PIC XX.
+
+       01  WS-DATA-FORMATADA.
+           05 WS-DIA-FT                       PIC 99.
+           05 FILLER                         PIC X VALUE '/'.
+           05 WS-MES-FT                       PIC 99.
+           05 FILLER                         PIC X VALUE '/20'.
+           05 WS-ANO-FT                       PIC 99.
+
+       01  WS-TIME-FORMATADA.
+           05 WS-HORA-FT                      PIC 99.
+           05 FILLER                         PIC X VALUE ':'.
+           05 WS-MIN-FT                       PIC 99.
+           05 FILLER   0                      PIC X VALUE ':'.
+           05 WS-SEG-FT                       PIC 99.
+      *--------------------------------------------------------------*  
+       77  FS-CADPRD                         PIC X(02).
+       77  FS-VCADPRD                        PIC X(02).
+       77  WS-CTLIDO                         PIC 9(03).
+       77  WS-CTGRAV                         PIC 9(03).
+       77  WS-CTDUP                          PIC 9(03).
+       77  WS-CTFORASEQ                      PIC 9(03).
+
+       77  WS-MSG                            PIC X(60).
+       77  WS-FS                             PIC X(02).
+
+       77  FS-MOVPRD                         PIC X(02).
+       77  FS-RELOCOR                        PIC X(02).
+       77  FS-VCADPRD                        PIC X(02).
+      *--------------------------------------------------------------*
+      *COPYS DE ROTINAS BOOK
+      *--------------------------------------------------------------*
+           COPY VARDATA.
+           COPY VARPROSS.
+      *--------------------------------------------------------------*
+      *RELATORIO - CABECALHO
+      *--------------------------------------------------------------*
+       01  WS-CABEC1.
+           05 WS-DATA-CABEC1               PIC X(10).
+           05 FILLER                       PIC X(02)
+                                                   VALUE SPACES.
+           05 WS-HORA-CABEC1               PIC X(08).  
+           05 FILLER                       PIC X(30)
+                                                   VALUE SPACES.
+           05 FILLER                       PIC X(44)
+                                                    VALUE
+      *        12345678901234567890123456789012345678901234
+              "OCORRENCIAS ATUALIZACAO CADASTRO DE PRODUTOS".
+           05 FILLER                       PIC X(32)
+                                                   VALUE SPACES.
+           05 FILLER                       PIC X(05)
+                                                   VALUE
+      *       12345                                      
+             "PAG. ".
+           05 WS-PAG-CABEC1                PIC Z9.
+       
+       01  WS-CABEC2.
+           05 FILLER                       PIC X(132)
+                                                    VALUE ALL '-'.
+       01  WS-CABEC3.
+           05 FILLER                       PIC X(44)
+                                                   VALUE 
+      *       12345678901234567890123456789012345678901234
+             "     IMAGEM DO REGISTRO                     ".
+           05 FILLER                       PIC X(44)
+                                                   VALUE 
+      *       12345678901234567890123456789012345678901234
+             "                                            ".
+           05 FILLER                       PIC X(44)
+                                                   VALUE 
+      *       12345678901234567890123456789012345678901234
+             "                    OCORRENCIA              ".
+       01  WS-CABEC4.
+           05 FILLER                       PIC X(132)
+                                                   VALUE ALL '-'.
+      *--------------------------------------------------------------*
+      *RELATORIO - DETALHE
+      *--------------------------------------------------------------*
+       01  WS-LINDET.
+           05 FILLER                       PIC X(06)
+                                                   VALUE SPACES.
+           05 LD-IMAGEM                    PIC X(70).
+           05 FILLER                       PIC X(20)
+                                                   VALUE SPACES.
+           05 LD-OCORRENCIA                PIC X(18).
+           05 FILLER                       PIC X(21)
+                                                   VALUE SPACES.
+      *--------------------------------------------------------------*
+      *RELATORIO - RODAPE
+      *--------------------------------------------------------------*
+       01  WS-RODAPE1                      PIC X(132)
+                                                   VALUE ALL "-".                        
+       01  WS-RODAPE2.
+           05 FILLER                       PIC X(44)
+                                                   VALUE
+      *        12345678901234567890123456789012345678901234
+              "INDUSTRIAS SEU NOME S/A.                    ".
+           05 FILLER                       PIC X(44)
+                                                   VALUE
+              "                                            ".
+           05 FILLER                       PIC X(44)
+                                                   VALUE
+              "            SERVIMOS BEM PARA SERVIR SEMPRE.".
+      *--------------------------------------------------------------* 
+       PROCEDURE                           DIVISION.                    
+      *--------------------------------------------------------------*  
+       0000-EX004P18.
+           PERFORM 1000-INICIALIZAR
+           PERFORM 2000-PROCESSAR
+                   UNTIL FIM-ARQ-M 
+           PERFORM 3000-TERMINO
+           GOBACK
+           .
+       1000-INICIALIZAR.
+           ACCEPT WS-HORARIO-INICIAL FROM TIME
+           ACCEPT WS-TIME-SYS FROM TIME
+           ACCEPT WS-DATA-SISTEMA FROM DATE
+       
+           MOVE ZERO                       TO WS-CTLIDO
+                                              WS-CTINC
+                                              WS-CTEXC
+                                              WS-CTALT
+                                              WS-CTINV
+                                              WS-CTIMP
+                                              WS-CTPAG
+           MOVE 99                         TO WS-CTLINHA
+
+           OPEN INPUT MOVPRD
+           IF NOT SUCESSO-MOVPRD
+               MOVE 'ERRO ABRINDO ARQUIVO MOVPRD' TO WS-MSG
+               MOVE FS-MOVPRD              TO WS-FS
+               GO TO 9000-ERRO
+           END-IF
+
+           OPEN OUTPUT RELOCOR
+           IF NOT SUCESSO-R
+               MOVE 'ERRO ABRINDO ARQUIVO RELOCOR' TO WS-MSG
+               MOVE FS-RELOCOR             TO WS-FS
+               GO TO 9000-ERRO
+           END-IF
+           PERFORM 1100-LER-MOVPRD
+
+           OPEN I-O VCADPRD
+           IF NOT SUCESSO-VCADPRD
+               MOVE 'ERRO ABRINDO ARQUIVO VCADPRD' TO WS-MSG
+               MOVE FS-VCADPRD             TO WS-FS
+               GO TO 9000-ERRO
+           END-IF
+
+           PERFORM 1100-LER-MOVPRD
+           .
+       1100-LER-MOVPRD.
+           READ MOVPRD INTO WS-REG-MOVPRD
+           IF SUCESSO-MOVPRD
+               ADD 1 TO WS-CTLIDO
+           ELSE 
+              IF NOT FIM-ARQ-M
+                  MOVE 'ERRO LENDO ARQUIVO CADPRD' TO WS-MSG
+                  MOVE FS-MOVPRD           TO WS-FS
+                  GO TO 9000-ERRO
+              END-IF
+           END-IF
+           .
+       2000-PROCESSAR.
+           EVALUATE WS-TIPOMOVTO-M
+                WHEN 'I'
+                     PERFORM 2100-INCLUSAO
+                WHEN 'E'
+                     PERFORM 2200-EXCLUSAO
+                WHEN 'A'
+                     PERFORM 2300-ALTERACAO
+                WHEN OTHER
+                     MOVE WS-REG-MOVPRD        TO LD-IMAGEM
+                     MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                     PERFORM 2400-IMPRIME-RELOCOR
+                     ADD 1 TO WS-CTINV
+           END-EVALUATE
+           PERFORM 1100-LER-MOVPRD
+           .
+       2100-INCLUSAO.
+           MOVE WS-CODPROD-M               TO CODPROD-V
+           READ VCADPRD                    INTO WS-REG-VCADPRD           
+           EVALUATE FS-VCADPRD
+               WHEN '00'
+                   MOVE WS-REG-CADPRD      TO LD-IMAGEM
+                   MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                   PERFORM 2400-IMPRIME-RELOCOR
+                   ADD 1 TO WS-CTINV
+               WHEN '23'
+                   MOVE WS-REG-MOVPRD      TO WS-REG-VCADPRD
+                   WRITE VCADPRD           FROM WS-REG-VCADPRD
+                   IF FS-VCADPRD = "00"
+                       MOVE WS-REG-MOVPRD TO LD-IMAGEM
+                       MOVE 'INCLUSAO EFETUADA' TO LD-OCORRENCIA
+                       PERFORM 2400-IMPRIME-RELOCOR
+                       ADD 1 TO WS-CTINC 
+                   ELSE 
+                      IF FS-VCADPRD = '22'
+                         MOVE WS-REG-MOVPRD      TO LD-IMAGEM
+                         MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                         PERFORM 2400-IMPRIME-RELOCOR
+                         ADD 1 TO WS-CTDUP
+                      ELSE
+                         MOVE 'ERRO NAO ESPERADO' TO WS-MSG
+                         MOVE FS-VCADPRD         TO WS-FS
+                         GO TO 9000-ERRO
+                      END-IF
+                   END-IF
+               WHEN OTHER
+                   MOVE 'FILE STATUS INVALIDO' TO WS-MSG
+                   MOVE FS-VCADPRD         TO WS-FS
+                   GO TO 9000-ERRO
+               END-EVALUATE
+           .
+       2200-EXCLUSAO.
+           MOVE WS-CODPROD-M               TO CODPROD-V
+           READ VCADPRD                    INTO WS-REG-VCADPRD
+           EVALUATE FS-VCADPRD
+               WHEN '00'
+                    DELETE VCADPRD
+                     IF FS-VCADPRD = '00'
+                        MOVE WS-REG-MOVPRD    TO LD-IMAGEM
+                        MOVE 'EXCLUSAO EFETUADA' TO LD-OCORRENCIA
+                        PERFORM 2400-IMPRIME-RELOCOR
+                        ADD 1 TO WS-CTEXC
+                     ELSE
+                        IF FS-VCADPRD = '23'
+                           MOVE WS-REG-MOVPRD TO LD-IMAGEM
+                           MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                           PERFORM 2400-IMPRIME-RELOCOR
+                           ADD 1 TO WS-CTINV
+                        ELSE
+                           MOVE 'ERRO NAO ESPERADO' TO WS-MSG
+                           MOVE FS-VCADPRD         TO WS-FS
+                           GO TO 9000-ERRO
+                        END-IF
+                     END-IF
+                    END-DELETE
+                WHEN '23'
+                     MOVE WS-REG-MOVPRD    TO LD-IMAGEM
+                     MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                     PERFORM 2400-IMPRIME-RELOCOR
+                     ADD 1 TO WS-CTINV
+                WHEN OTHER
+                     MOVE 'FILE STATUS INVALIDO' TO WS-MSG
+                     MOVE FS-VCADPRD         TO WS-FS
+                     GO TO 9000-ERRO
+           .
+       2300-ALTERACAO.
+           MOVE WS-CODPROD-M               TO CODPROD-V
+           READ VCADPRD                    INTO WS-REG-VCADPRD
+           EVALUATE FS-VCADPRD
+               WHEN '00'
+                   MOVE WS-REG-VCADPRD     TO LD-IMAGEM
+                   MOVE "ANTES DA ALTERACAO" TO LD-OCORRENCIA
+                   PERFORM 2400-IMPRIME-RELOCOR
+      * MOVER CAMPOS DA WS-REG-MOVPRD PARA WS-REG-VCADPRD, VERIFICANDO
+      * SE OS CAMPOS SAO NUMERICOS OU ALFANUMERICOS
+                   IF WS-DESCPROD-M NOT EQUAL SPACES
+                   MOVE WS-DESCPROD-M      TO WS-DESCPROD-V
+                   END-IF
+                   IF WS-UNIDPROD-M NOT EQUAL SPACES
+                   MOVE WS-UNIDPROD-M      TO WS-UNIDPROD-V
+                   END-IF
+                   IF WS-LOCALPROD-M NOT EQUAL SPACES
+                   MOVE WS-LOCALPROD-M      TO WS-LOCALPROD-V
+                   END-IF
+
+                   IF WS-QTDEST-M IS NUMERIC
+                   MOVE WS-QTDEST-M        TO WS-QTDEST-V
+                   END-IF
+                   IF WS-QTDMAX-M IS NUMERIC
+                   MOVE WS-QTDMAX-M        TO WS-QTDMAX-V
+                   END-IF
+                   IF WS-QTDMIN-M IS NUMERIC
+                   MOVE WS-QTDMIN-M        TO WS-QTDMIN-V
+                   END-IF
+                   IF WS-PRECOCOMPRA-M IS NUMERIC
+                   MOVE WS-PRECOCOMPRA-M   TO WS-PRECOCOMPRA-V
+                   END-IF
+                   IF WS-PRECOVENDA-M IS NUMERIC
+                   MOVE WS-PRECOVENDA-M    TO WS-PRECOVENDA-V
+                   END-IF
+                   IF WS-PERCOMIS-M IS NUMERIC
+                   MOVE WS-PERCOMIS-M      TO WS-PERCOMIS-V
+                   END-IF
+
+                   REWRITE  REG-VCADPRD    FROM WS-REG-VCADPRD
+                   IF FS-VCADPRD = '00'
+                      MOVE WS-REG-VCADPRD  TO LD-IMAGEM
+                      MOVE 'APOS ALTERACAO' TO LD-OCORRENCIA
+                      PERFORM 2400-IMPRIME-RELOCOR
+                      ADD 1                TO WS-CTALT
+                   ELSE
+                      IF FS-VCADPRD = '23'
+                         MOVE WS-REG-MOVPRD   TO LD-IMAGEM
+                         MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                         PERFORM 2400-IMPRIME-RELOCOR
+                         ADD 1                TO WS-CTINV
+                      ELSE 
+                         MOVE 'FILE STATUS NAO ESPERADO' TO WS-MSG
+                         MOVE FS-VCADPRD   TO WS-FS
+                         GO TO 9000-ERRO
+                      END-IF
+                   END-IF
+               WHEN '23'
+                   MOVE WS-REG-MOVPRD      TO LD-IMAGEM
+                   MOVE 'MOVIMENTO INVALIDO' TO LD-OCORRENCIA
+                   PERFORM 2400-IMPRIME-RELOCOR
+                   ADD 1                   TO WS-CTINV
+               WHEN OTHER
+                   MOVE 'FILE STATUS NAO ESPERADO' TO WS-MSG
+                   MOVE FS-VCADPRD         TO WS-FS
+                   GO TO 9000-ERRO
+               END-EVALUATE
+               .     
+       2400-IMPRIME-RELOCOR.
+           IF WS-CTLINHA > 59
+              PERFORM 2500-IMPRIME-CABECALHO
+           END-IF
+
+           PERFORM 2600-IMPRIME-DETALHE
+
+           IF WS-CTLINHA = 58
+              PERFORM 2700-IMPRIME-RODAPE
+           END-IF
+           .
+       
+       2500-IMPRIME-CABECALHO.
+           MOVE WS-DIA                     TO WS-DIA-FT
+           MOVE WS-MES                     TO WS-MES-FT
+           MOVE WS-ANO                     TO WS-ANO-FT
+           MOVE WS-HORA-SYS                TO WS-HORA-FT
+           MOVE WS-MIN-SYS                 TO WS-MIN-FT
+           MOVE WS-SEG-SYS                 TO WS-SEG-FT
+           MOVE WS-DATA-FORMATADA          TO WS-DATA-CABEC1
+           MOVE WS-TIME-FORMATADA          TO WS-HORA-CABEC1
+           ADD 1                           TO WS-CTPAG
+           MOVE WS-CTPAG                   TO WS-PAG-CABEC1
+
+           WRITE REG-RELOCOR                  FROM WS-CABEC1 AFTER PAGE 
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR CABECALHO1" TO WS-MSG 
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+
+           WRITE REG-RELOCOR                  FROM WS-CABEC2
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR CABECALHO2" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+
+           WRITE REG-RELOCOR                  FROM WS-CABEC3
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR CABECALHO3" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+                 
+           WRITE REG-RELOCOR                  FROM WS-CABEC4
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR CABECALHO4" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           MOVE 4                          TO WS-CTLINHA
+           .
+       2600-IMPRIME-DETALHE.
+           WRITE REG-RELOCOR                  FROM WS-LINDET
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR DETALHE" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           ADD 1                           TO WS-CTLIN
+           ADD 1                           TO WS-CTIMP
+           .
+       2700-IMPRIME-RODAPE.
+           COMPUTE WS-PULA = 58 - WS-CTLINHA
+           WRITE REG-RELOCOR         FROM WS-RODAPE1 AFTER WS-PULA LINES
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR RODAPE1" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           WRITE REG-RELOCOR         FROM WS-RODAPE2
+           IF NOT SUCESSO-R
+              MOVE "ERRO AO GRAVAR RODAPE2" TO WS-MSG
+              MOVE FS-RELOCOR             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           MOVE 60                         TO WS-CTLIN
+           .
+       3000-TERMINO.
+           IF WS-CTLIN < 60
+              PERFORM 2700-IMPRIMIR-RODAPE
+           END-IF
+           PERFORM 9000-IMPRIME-DATA
+           PERFORM 4000-FECHAMENTO-ARQUIVOS
+           ACCEPT WS-HORA-HORARIO-FINAL    FROM TIME
+           PERFORM 9000-TEMPO-DE-PROCESSAMENTO          
+           DISPLAY '==================================================='
+           DISPLAY 'TOTAL DE MOVIMENTOS LIDOS: ' WS-CTLIDO
+           DISPLAY 'TOTAL DE MOVIMENTOS INCLUIDOS: ' WS-CTINC
+           DISPLAY 'TOTAL DE REGISTROS EXCLUIDOS: ' WS-CTEXC
+           DISPLAY 'TOTAL DE REGISTROS ALTERADOS: ' WS-CTALT
+           DISPLAY 'TOTAL DE MOVIMENTOS INVALIDOS: ' WS-CTINV
+           DISPLAY 'TOTAL DE LINHAS IMPRESSAS: ' WS-CTIMP
+           DISPLAY 'TOTAL DE PAGINAS IMPRESSAS: ' WS-CTPAG
+           DISPLAY '===================================================' 
+           .
+       4000-FECHAMENTO-ARQUIVOS.
+           CLOSE MOVPRD
+           IF FS-MOVPRD NOT = '00'
+               MOVE 'ERRO FECHANDO ARQUIVO CADPRD' TO WS-MSG
+               MOVE FS-MOVPRD              TO WS-FS
+               PERFORM 9000-ERRO
+           END-IF
+
+           CLOSE VCADPRD
+           IF FS-VCADPRD NOT = '00'
+               MOVE 'ERRO FECHANDO ARQUIVO VCADPRD' TO WS-MSG
+               MOVE FS-VCADPRD             TO WS-FS
+               PERFORM 9000-ERRO
+           END-IF
+
+           CLOSE RELOCOR
+           IF FS-RELOCOR NOT = '00'
+               MOVE 'ERRO FECHANDO ARQUIVO VCADPRD' TO WS-MSG
+               MOVE FS-RELOCOR             TO WS-FS
+               PERFORM 9000-ERRO
+           END-IF
+           .
+
+           COPY ROTERRO.
+           COPY ROTDATA.
+           COPY ROTPROSS.

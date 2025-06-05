@@ -1,0 +1,342 @@
+      *--------------------------------------------------------------*  00010004
+       IDENTIFICATION                      DIVISION.                    00020004
+      *--------------------------------------------------------------*  00030004
+       PROGRAM-ID.                         EX004P03.                    00040008
+       AUTHOR.                             GABRIEL.                     00050008
+      *                                                                 00060004
+      *--------------------------------------------------------------*  00070004
+       ENVIRONMENT                         DIVISION.                    00080004
+      *--------------------------------------------------------------*  00090020
+       CONFIGURATION                       SECTION.                     00100020
+       SPECIAL-NAMES.                                                   00110020
+           DECIMAL-POINT IS COMMA.                                      00120020
+      *
+       INPUT-OUTPUT                        SECTION.                     00121020
+       FILE-CONTROL.                                                    00122020
+           SELECT SIMUEMP ASSIGN           TO UT-S-SIMUEMP              00123020
+           FILE STATUS IS FS-SIMUEMP                                    00124020
+           .                                                            00125020
+           SELECT EMPAPROV ASSIGN          TO UT-S-EMPAPROV             00126020
+           FILE STATUS IS FS-EMPAPROV                                   00127020
+           .                                                            00128020
+      *--------------------------------------------------------------*  00130004
+       DATA                                DIVISION.                    00140004
+      *--------------------------------------------------------------*  00150004
+       FILE                                SECTION.                     00150120
+      *--------------------------------------------------------------*  00151020
+       FD  SIMUEMP                                                      00151120
+           LABEL RECORD IS STANDARD                                     00151220
+           BLOCK CONTAINS 0 RECORDS                                     00151320
+           RECORDING MODE IS F                                          00151420
+           RECORD CONTAINS 18 CHARACTERS                                00151520
+           DATA RECORD IS REG-SIMUEMP                                   00151620
+           .                                                            00151720
+      *                                                                 00151820
+       01  REG-SIMUEMP.
+           05  NUM-SIMULACAO-S                 PIC 9(04).                  00151
+           05  VAL-EMPRESTIMO-S                PIC 9(06)V99.               00152
+           05  TX-JUROS-S                      PIC 9(02)V99.               00152
+           05  QTD-PARCELAS-S                  PIC 9(02).                  00152
+      *--------------------------------------------------------------*  00153020
+       FD  EMPAPROV                                                     00153120
+           LABEL RECORD IS STANDARD                                     00153220
+           BLOCK CONTAINS 0 RECORDS                                     00153320
+           RECORDING MODE IS F                                          00153420
+           RECORD CONTAINS 35 CHARACTERS                                00153520
+           DATA RECORD IS REG-EMPAPROV                                  00153620
+           .                                                            00153720
+      *                                                                 00153820
+       01  REG-EMPAPROV.
+           05  NUM-SIMULACAO-E                 PIC 9(04).                  00154
+           05  VAL-EMPRESTIMO-E                PIC 9(06)V99.               00154
+           05  TX-JUROS-E                      PIC 9(02)V99.               00154
+           05  QTD-PARCELAS-E                  PIC 9(02).                  00154
+           05  VALOR-PARCELA-E                  PIC 9(06)V99.              00154
+           05  TOTAL-EMP-E                      PIC 9(07)V99.              00154
+      *--------------------------------------------------------------*  00155020
+       WORKING-STORAGE                     SECTION.                     00160004
+       01  WS-CONTADORES.                                               00170008
+           05 WS-CONTSIMLIDO               PIC 9(03).                   00180021
+           05 WS-CONTSIMGRAV               PIC 9(03).                   00190021
+           05 WS-CONTSIMAPROV              PIC 9(03).                   00190120
+           05 WS-CONTSIMREPROV             PIC 9(03).                   00190220
+      *                                                                 00191012
+       01  WS-REG-SIMUEMP.                                              00200020
+           05 WS-NUM-SIMULACAO-S           PIC 9(04).                   00201020
+           05 WS-VAL-EMPRESTIMO-S          PIC 9(06)V99.                00202020
+           05 WS-JUROS-S                   PIC 9(02)V99.                00203020
+           05 WS-QTD-PARCELAS-S            PIC 9(02).                   00204020
+      *                                                                 00204120
+       01  WS-REG-EMPAPROV.                                             00204220
+           05 WS-NUM-SIMULACAO-E           PIC 9(04).                   00204320
+           05 WS-VAL-EMPRESTIMO-E          PIC 9(06)V99.                00204420
+           05 WS-JUROS-E                   PIC 9(02)V99.                00204520
+           05 WS-QTD-PARCELAS-E            PIC 9(02).                   00204620
+           05 WS-VALOR-PARCELAS-E          PIC 9(06)V99.                00204820
+           05 WS-TOTAL-EMP-E               PIC 9(07)V99.                00204920
+      *                                                                 00205012
+       01  WS-FORMATADO.                                                00205109
+           05 WS-NUM-SIMULACAO-F           PIC 9(04).                   00205209
+           05 WS-VAL-EMPRESTIMO-F          PIC $BBBZZZ.ZZ9,99.          00205309
+           05 WS-JUROS-F                   PIC Z9,99.                   00205409
+           05 WS-QTD-PARCELAS-F            PIC Z9.                      00205509
+           05 WS-VAL-PARCELA-F             PIC $BBBZZZ.ZZ9,99.          00205609
+           05 WS-SOMA-PARCELAS-F           PIC $BZ.ZZZ.ZZ9,99.          00205716
+           05 WS-CONTSIMLIDO-F             PIC ZZZ9.                    00205821
+           05 WS-CONTSIMGRAV-F          PIC ZZZ9.                       00205921
+      *                                                                 00206012
+       01  WS-HORARIO-INICIAL.                                          00206109
+           05 WS-HORA-I                    PIC 99.                      00206209
+           05 WS-MIN-I                     PIC 99.                      00206309
+           05 WS-SEG-I                     PIC 99.                      00206418
+           05 WS-CENT-I                    PIC 99.                      00206509
+      *                                                                 00206612
+       01  WS-HORARIO-FINAL.                                            00206709
+           05 WS-HORA-F                    PIC 99.                      00206809
+           05 WS-MIN-F                     PIC 99.                      00206909
+           05 WS-SEG-F                     PIC 99.                      00207009
+           05 WS-CENT-F                    PIC 99.                      00207109
+       01  WS-TEMPO-PROCESSAMENTO.                                      00207209
+           05 WS-HORA-P                    PIC 99.                      00207309
+           05 WS-MIN-P                     PIC 99.                      00207409
+           05 WS-SEG-P                     PIC 99.                      00207509
+           05 WS-CENT-P                    PIC 99.                      00207609
+       77  WS-DIFERENCA                    PIC 9(7).                    00207709
+       01  WS-TEMPO-PROCESSAMENTO-F.                                    00207809
+           05 WS-HORA-PF                   PIC 99.                      00207909
+           05 FILLER                       PIC X(01)                    00208009
+                                                   VALUE ":".           00208112
+           05 WS-MIN-PF                    PIC 99.                      00208209
+           05 FILLER                       PIC X(01)                    00208309
+                                                   VALUE ":".           00208409
+           05 WS-SEG-PF                    PIC 99.                      00208509
+           05 FILLER                       PIC X(01)                    00208609
+                                                   VALUE ":".           00208709
+           05 WS-CENT-PF                   PIC 99.                      00208812
+       77  WS-VAL-PARCELA                  PIC 9(06)V99.                00208909
+       77  WS-SOMA-PARCELAS                PIC 9(09)V99.                00209009
+      *--------------------------------------------------------------*  00209120
+      * VARIAVEIS DE DATA                                               00209220
+      *--------------------------------------------------------------*  00210004
+       01  WS-DATA-SISTEMA.                                             00210120
+            05 WS-ANO                      PIC 9(02).                   00210220
+            05 WS-MES                      PIC 9(02).                   00210320
+            05 WS-DIA                      PIC 9(02).                   00210420
+      *                                                                 00210520
+       01  WS-DATA-JUL.                                                 00210620
+           05 WS-ANO-J                     PIC 9(02).                   00210720
+           05 WS-DIA-J                     PIC 9(03).                   00210820
+      *                                                                 00210920
+       01  WS-DATA-SISTEMA-F.                                           00211020
+           05 WS-DIA                       PIC 9(02).                   00211120
+           05 FILLER                       PIC X(01)                    00211220
+                                                   VALUE '/'.           00211320
+           05 WS-MES                       PIC 9(02).                   00211420
+           05 FILLER                       PIC X(01)                    00211520
+                                                   VALUE '/'.           00211620
+           05 WS-ANO                       PIC 9(02).                   00211720
+       77  WS-MES-EXT                      PIC X(09).                   00211820
+       77  WS-DIA-SEMANA                   PIC 9.                       00211920
+       77  WS-DIA-SEMANA-F                 PIC X(13).                   00212020
+      *--------------------------------------------------------------*  00213020
+      * VARIAVEIS DE FILE STATUS                                        00213120
+      *--------------------------------------------------------------*  00214020
+       77  FS-SIMUEMP                      PIC X(02).                   00214120
+       77  FS-EMPAPROV                     PIC X(02).                   00214220
+      *--------------------------------------------------------------*  00215020
+      * MENSAGENS DE ERRO                                               00215120
+      *--------------------------------------------------------------*  00216020
+       77  WS-MSG01                        PIC X(60)                    00216120
+                                                   VALUE                00216220
+           "ERRO DE ABERTURA SIMUEMP".                                  00216320
+       77  WS-MSG02                        PIC X(60)                    00216420
+                                                   VALUE                00216520
+           "ERRO DE ABERTURA EMPAPROV".                                 00216620
+       77  WS-MSG03                        PIC X(60)                    00216720
+                                                   VALUE                00216820
+           "ERRO DE LEITURA SIMUEMP".                                   00216920
+       77  WS-MSG04                        PIC X(60)                    00217020
+                                                   VALUE                00217120
+           "ERRO DE GRAVACAO EMPAPROV".                                 00217220
+       77  WS-MSG05                        PIC X(60)                    00217320
+                                                   VALUE                00217420
+           "ERRO DE FECHAMENTO SIMUEMP".                                00217520
+       77  WS-MSG06                        PIC X(60)                    00217620
+                                                   VALUE                00217720
+           "ERRO DE FECHAMENTO EMPAPROV".                               00217820
+      *--------------------------------------------------------------*  00217920
+      * VARIAVEIS DE TRABALHO                                           00218020
+      *--------------------------------------------------------------*  00219020
+       77  WS-MSG                          PIC X(60).                   00219120
+       77  WS-FS                           PIC X(02).                   00219220
+      *--------------------------------------------------------------*  00219420
+       PROCEDURE                           DIVISION.                    00220020
+      *--------------------------------------------------------------*  00230004
+       0000-EX004P05.                                                   00240020
+           PERFORM 1000-INICIALIZAR                                     00250008
+           PERFORM 2000-PROCESSAR                                       00260008
+                   UNTIL FS-SIMUEMP = "10"                              00270020
+           PERFORM 3000-TERMINO                                         00280008
+           STOP RUN                                                     00290008
+           .                                                            00300008
+      *                                                                 00310008
+       1000-INICIALIZAR.                                                00320008
+           ACCEPT WS-HORARIO-INICIAL FROM TIME                          00321009
+           MOVE ZERO TO                    WS-CONTADORES                00330018
+      *                                                                 00331020
+           OPEN INPUT SIMUEMP                                           00340020
+           IF FS-SIMUEMP NOT = "00"                                     00341020
+              MOVE WS-MSG01                TO WS-MSG                    00342020
+              MOVE FS-SIMUEMP              TO WS-FS                     00343020
+              GO TO 9000-ERRO                                           00344020
+           END-IF
+      *                                                                 00344120
+           OPEN OUTPUT EMPAPROV                                         00345020
+           IF FS-SIMUEMP NOT = "00"                                     00346020
+              MOVE WS-MSG02                TO WS-MSG                    00347020
+              MOVE FS-EMPAPROV             TO WS-FS                     00348020
+              GO TO 9000-ERRO                                           00349020
+           END-IF
+           PERFORM 1500-LER-SIMUEMP                                     00350020
+           .                                                            00360008
+      *                                                                 00370008
+       1500-LER-SIMUEMP.                                                00380020
+           READ SIMUEMP INTO WS-REG-SIMUEMP                             00390020
+           IF FS-SIMUEMP = "00"                                         00400021
+              ADD 1                        TO WS-CONTSIMLIDO            00410021
+           ELSE                                                         00411021
+              IF FS-SIMUEMP NOT = "10"                                  00412021
+                 MOVE WS-MSG03             TO WS-MSG                    00413021
+                 MOVE FS-SIMUEMP           TO WS-FS                     00414021
+                 GO TO 9000-ERRO                                        00415021
+              END-IF                                                    00420021
+           END-IF                                                       00421021
+           .                                                            00430008
+      *                                                                 00440008
+       2000-PROCESSAR.                                                  00450008
+           IF WS-VAL-EMPRESTIMO-S >= 100000 AND                         00451021
+              WS-QTD-PARCELAS-S >= 50                                   00452021
+              ADD 1                 TO WS-CONTSIMREPROV
+           ELSE                                                         00454021
+              COMPUTE WS-VAL-PARCELA =                                  00460021
+                      (WS-VAL-EMPRESTIMO-S * WS-JUROS-S)/               00470021
+                      (1 - 1 / (1 + WS-JUROS-S / 100)                   00480021
+                      ** WS-QTD-PARCELAS-S)
+              COMPUTE WS-SOMA-PARCELAS = WS-VAL-PARCELA                 00490021
+                                         * WS-QTD-PARCELAS-S
+      *                                                                 00491021
+              MOVE WS-REG-SIMUEMP          TO WS-REG-EMPAPROV           00500021
+              WRITE REG-EMPAPROV FROM WS-REG-EMPAPROV                   00510021
+              IF FS-EMPAPROV = "00"                                     00520021
+                 ADD 1 TO                        WS-CONTSIMAPROV        00580021
+              ELSE                                                      00581021
+                 MOVE WS-MSG04             TO WS-MSG                    00582021
+                 MOVE FS-EMPAPROV          TO WS-FS                     00583021
+                 GO TO 9000-ERRO                                        00584021
+              END-IF                                                    00585021
+           END-IF                                                       00586021
+      *                                                                 00587021
+           PERFORM 1500-LER-SIMUEMP                                     00590021
+           .                                                            00600008
+      *                                                                 00610008
+       3000-TERMINO.                                                    00620008
+           PERFORM 9000-IMPRIME-DATA                                    00620121
+           CLOSE SIMUEMP                                                00620221
+           IF FS-SIMUEMP NOT = "00"                                     00620321
+              MOVE WS-MSG05                TO WS-MSG                    00620421
+              MOVE FS-SIMUEMP              TO WS-FS                     00620521
+              GO TO 9000-ERRO                                           00620621
+           END-IF
+           CLOSE SIMUEMP                                                00620721
+           IF FS-EMPAPROV NOT = "00"                                    00620821
+              MOVE WS-MSG06                TO WS-MSG                    00620921
+              MOVE FS-SIMUEMP              TO WS-FS                     00621021
+              GO TO 9000-ERRO                                           00621121
+           END-IF
+           ACCEPT WS-HORARIO-FINAL FROM TIME                            00621209
+           COMPUTE WS-DIFERENCA = ( WS-HORA-F * 360000 +                00621309
+                                    WS-MIN-F * 6000 +                   00621409
+                                    WS-SEG-F * 100 +                    00621509
+                                    WS-CENT-F) -                        00621609
+                                  ( WS-HORA-I * 360000 +                00621709
+                                    WS-MIN-I * 6000 +                   00621809
+                                    WS-SEG-I * 100 +                    00621909
+                                    WS-CENT-I)                          00622009
+           COMPUTE WS-HORA-P = WS-DIFERENCA / 360000                    00622109
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-HORA-P * 360000     00622209
+           COMPUTE WS-MIN-P = WS-DIFERENCA / 6000                       00622309
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-MIN-P * 6000        00622409
+           COMPUTE WS-SEG-P = WS-DIFERENCA / 100                        00622509
+           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-SEG-P * 100         00622609
+           COMPUTE WS-CENT-P = WS-DIFERENCA                             00622709
+           MOVE WS-HORA-P                  TO WS-HORA-PF                00622809
+           MOVE WS-MIN-P                   TO WS-MIN-PF                 00622909
+           MOVE WS-SEG-P                   TO WS-SEG-PF                 00623009
+           MOVE WS-CENT-P                  TO WS-CENT-PF                00623109
+           DISPLAY "==================================================" 00624020
+           DISPLAY "TOTAL DE SIMULACOES LIDAS.......: "                 00630010
+                                                     WS-CONTSIMLIDO     00631021
+           DISPLAY "TOTAL DE SIMULACOES APROVADAS...: "                 00640021
+                                                     WS-CONTSIMAPROV    00650021
+           DISPLAY "TOTAL DE SIMULACOES REPROVADAS..: "                 00650121
+                                                     WS-CONTSIMREPROV   00650221
+           DISPLAY "TEMPO TOTAL DE PROCESSAMENTO....: "                 00651010
+                                                WS-TEMPO-PROCESSAMENTO-F00652010
+           DISPLAY "==================================================" 00660020
+           DISPLAY "*   TERMINO NORMAL DO PROCESSAMENTO EX004P05*     " 00670021
+           DISPLAY "==================================================" 00680020
+           .                                                            00690008
+       9000-ERRO.                                                       00700021
+           DISPLAY "*=================================================*"00710021
+           DISPLAY " MENSAGEM....: " WS-MSG                             00720021
+           DISPLAY " FILE STATUS.: " WS-FS                              00730021
+           DISPLAY "*=================================================*"00740021
+           DISPLAY "=====  TERMINO ANORMAL DO PROGRAMA EX004P05 ======*"00750021
+           DISPLAY "*=================================================*"00760021
+           MOVE 16                         TO RETURN-CODE               00770021
+           STOP RUN                                                     00780021
+           .                                                            00790021
+       9000-IMPRIME-DATA.                                               00800021
+               ACCEPT WS-DATA-SISTEMA FROM DATE                         00810022
+               ACCEPT WS-DATA-JUL FROM DAY                              00820021
+               ACCEPT WS-DIA-SEMANA FROM DAY-OF-WEEK                    00830021
+      * IDENTIFICACAO DO MES DA DATA GREGORIANA 02                      00840021
+               EVALUATE WS-MES OF WS-DATA-SISTEMA                       00850021
+                  WHEN 01 MOVE "JANEIRO"   TO WS-MES-EXT                00860021
+                  WHEN 02 MOVE "FEVEREIRO" TO WS-MES-EXT                00870021
+                  WHEN 03 MOVE "MARCO"     TO WS-MES-EXT                00880021
+                  WHEN 04 MOVE "ABRIL"     TO WS-MES-EXT                00890021
+                  WHEN 05 MOVE "MAIO"      TO WS-MES-EXT                00900021
+                  WHEN 06 MOVE "JUNHO"     TO WS-MES-EXT                00910021
+                  WHEN 07 MOVE "JULHO"     TO WS-MES-EXT                00920021
+                  WHEN 08 MOVE "AGOSTO"    TO WS-MES-EXT                00930021
+                  WHEN 09 MOVE "SETEMBRO"  TO WS-MES-EXT                00940021
+                  WHEN 10 MOVE "OUTUBRO"   TO WS-MES-EXT                00950021
+                  WHEN 11 MOVE "NOVEMBRO"  TO WS-MES-EXT                00960021
+                  WHEN 12 MOVE "DEZEMBRO"  TO WS-MES-EXT                00970021
+               END-EVALUATE                                             00980021
+      * IDENTIFICACAO DO DIA DA SEMANA POR EXTENSO                      00990021
+               EVALUATE WS-DIA-SEMANA                                   01000021
+                  WHEN 1 MOVE "SEGUNDA"    TO WS-DIA-SEMANA-F           01010021
+                  WHEN 1 MOVE "TERCA"      TO WS-DIA-SEMANA-F           01011021
+                  WHEN 1 MOVE "QUARTA"     TO WS-DIA-SEMANA-F           01012021
+                  WHEN 1 MOVE "QUINTA"     TO WS-DIA-SEMANA-F           01013021
+                  WHEN 1 MOVE "SEXTA"      TO WS-DIA-SEMANA-F           01014021
+                  WHEN 1 MOVE "SABADO"     TO WS-DIA-SEMANA-F           01015021
+                  WHEN 1 MOVE "DOMINGO"    TO WS-DIA-SEMANA-F           01016021
+               END-EVALUATE                                             01017021
+      *                                                                 01018021
+               DISPLAY "DATA GREGORIANA 1 - " WS-DATA-SISTEMA-F         01019021
+               DISPLAY "DATA GREGORIANA 2 - " WS-DIA OF                 01020021
+                                              WS-DATA-SISTEMA           01030021
+                                            " DE "                      01040021
+                                              WS-MES-EXT                01050021
+                                            " DE 20"                    01060021
+                                              WS-ANO OF                 01070021
+                                              WS-DATA-SISTEMA           01080021
+               DISPLAY "DATA JULIANA      - " WS-DIA-J                  01090021
+                                            " DE 20"                    01100021
+                                              WS-ANO-J                  01110021
+               DISPLAY "DIA DA SEMANA     - " WS-DIA-SEMANA-F           01120021
+               DISPLAY "***********************************************"01130021
+               .                                                        01140021

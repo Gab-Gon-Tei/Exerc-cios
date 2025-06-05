@@ -1,0 +1,9 @@
+EVALUATE WS-FUNCAO
+	WHEN 4 MOVE 50                               TO WS-TOTSUBSID
+	WHEN 3 MOVE 25                               TO WS-TOTSUBSID
+    WHEN 1 MOVE 0                                TO WS-TOTSUBSID
+	
+COPY CADCLI REPLACING ==::== BY ==WS-==
+COPY CADCLI REPLACING ==::== BY ====
+COPY CADCLI REPLACING ==::== BY ==WRK-VAR-==
+	

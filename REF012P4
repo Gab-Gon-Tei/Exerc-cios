@@ -1,0 +1,247 @@
+      *--------------------------------------------------------------*  00010004
+       IDENTIFICATION                      DIVISION.                    00020004
+      *--------------------------------------------------------------*  00030004
+       PROGRAM-ID.                         REF012P4.                    00040008
+       AUTHOR.                             NELSON.                      00050008
+      *                                                                 00060004
+      *--------------------------------------------------------------*  00070004
+       ENVIRONMENT                         DIVISION.                    00080004
+      *--------------------------------------------------------------*  00090004
+       CONFIGURATION                       SECTION.                     00100004
+       SPECIAL-NAMES.                                                   00110004
+           DECIMAL-POINT IS COMMA.                                      00120004
+      *
+       INPUT-OUTPUT                        SECTION.                     00100004
+      *
+       FILE-CONTROL.
+           SELECT TTCOMPRA ASSIGN TO UT-S-TTCOMPRA
+           FILE STATUS IS FS-TTCOMPRA
+           .
+      *--------------------------------------------------------------*  00130004
+       DATA                                DIVISION.                    00140004
+      *--------------------------------------------------------------*  00150004
+       FILE                                SECTION.                     00160004
+      *--------------------------------------------------------------*  00210008
+       FD  TTCOMPRA
+           RECORDING MODE IS F
+           .
+           COPY BKCOMPRA REPLACING ==::== BY ====.
+      *
+      *--------------------------------------------------------------*  00210008
+       WORKING-STORAGE                     SECTION.                     00160004
+      *--------------------------------------------------------------*  00210008
+           COPY BKCOMPRA REPLACING ==::== BY ==WS-==.
+
+           EXEC SQL
+              INCLUDE DCCOMPRA
+           END-EXEC.
+
+           EXEC SQL
+              INCLUDE SQLCA
+           END-EXEC.
+
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEIS DE FILE STATUS                                     *
+      *--------------------------------------------------------------*  00210008
+       01  FS-TTCOMPRA                     PIC X(02).                   00210108
+           88 SUCESSO                              VALUE '00'.          00210108
+           88 FIM-ARQUIVO                          VALUE '10'.          00210108
+      *
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEIS DE TRABALHO                                        *
+      *--------------------------------------------------------------*  00210008
+       77  WS-MSG                          PIC X(60).                   00210208
+       77  WS-FS                           PIC X(02).                   00210308
+      *
+       77  WS-CTLIDO                       PIC 9(04) COMP.              00210308
+       77  WS-CTGRAV                       PIC 9(04) COMP.              00210308
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEIS COM MASCARA DE EDICAO (FORMATADAS)                 *
+      *--------------------------------------------------------------*  00210008
+      *
+       77  WS-CTLIDO-F                     PIC ZZZ9.                    00210308
+       77  WS-CTGRAV-F                     PIC ZZZ9.                    00210308
+      *
+      *
+       77  WS-SQLCODE                      PIC S9(08).
+
+
+       77  WS-IDFORNEC-AUX                 PIC 9(06).
+       77  WS-TIPOCOMPRA-AUX               PIC 9(01).
+       77  WS-SOMA-TOTAL                   PIC 9(10)V99.
+
+       01  WS-INDICADORES.
+           05 IIDFORNEC                    PIC S9(04) COMP.
+           05 ITIPOCOMPRA                  PIC S9(04) COMP.
+           05 IVALORCOMPRA                 PIC S9(04) COMP.
+      *--------------------------------------------------------------*  00210008
+      * VARIAVEIS DE MENSAGENS                                      *
+      *--------------------------------------------------------------*  00210008
+       77  WS-MSG01                        PIC X(60)
+                                                   VALUE
+           'ERRO ABERTURA TTCOMPRA'.
+       77  WS-MSG02                        PIC X(60)
+                                                   VALUE
+           'ERRO ABERTURA CURSOR'.
+       77  WS-MSG03                        PIC X(60)
+                                                   VALUE
+           'ERRO LEITURA CURSOR'.
+       77  WS-MSG04                        PIC X(60)
+                                                   VALUE
+           'ERRO GRAVACAO TTCOMPRA'.
+       77  WS-MSG05                        PIC X(60)
+                                                   VALUE
+           'ERRO FECHAMENTO TTCOMPRA'.
+       77  WS-MSG06                        PIC X(60)
+                                                   VALUE
+           'ERRO FECHAMENTO CURSOR'.
+      *--------------------------------------------------------------*  00211007
+       PROCEDURE                           DIVISION.                    00220004
+      *--------------------------------------------------------------*  00230004
+       0000-REF012P4.
+           PERFORM 1000-INICIALIZAR
+           PERFORM 2000-PROCESSAR
+                   UNTIL SQLCODE = +100
+           PERFORM 3000-TERMINO
+           GOBACK
+           .
+      *
+       1000-INICIALIZAR.
+           MOVE ZEROS                      TO WS-CTLIDO
+                                              WS-CTGRAV
+           OPEN OUTPUT TTCOMPRA
+      *
+           IF NOT SUCESSO
+              MOVE WS-MSG01                TO WS-MSG
+              MOVE FS-TTCOMPRA             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+      *
+           EXEC SQL
+               DECLARE CURCOMPRA CURSOR FOR
+                   SELECT IDFORNEC, TIPOCOMPRA, VALORCOMPRA
+                   FROM TBCOMPRA
+                   WHERE (TIPOCOMPRA = 1 AND VALORCOMPRA >= 100)
+                      OR (TIPOCOMPRA = 2 AND VALORCOMPRA >= 50)
+                   ORDER BY IDFORNEC, TIPOCOMPRA
+           END-EXEC
+
+           EXEC SQL
+              OPEN CURCOMPRA
+           END-EXEC
+      *
+           IF SQLCODE NOT = 0
+              MOVE WS-MSG02                TO WS-MSG
+              MOVE SQLCODE                 TO WS-SQLCODE
+              GO TO 9000-ERRO-DB2
+           END-IF
+      *
+      * LER ATE ACHAR UMA LINHA VALIDA
+      *
+           PERFORM 1500-LER-CURCOMPRA
+
+      * INICIALIZA VARIAVEIS DE CONTROLE DA QUEBRA
+           MOVE IDFORNEC                   TO WS-IDFORNEC-AUX
+           MOVE TIPOCOMPRA                 TO WS-TIPOCOMPRA-AUX
+           MOVE 0                          TO WS-SOMA-TOTAL
+           .
+      *
+       1500-LER-CURCOMPRA.
+           INITIALIZE DCLTBCOMPRA
+      *
+           EXEC SQL
+              FETCH CURCOMPRA
+              INTO :IDFORNEC    :IIDFORNEC
+                  ,:TIPOCOMPRA  :ITIPOCOMPRA
+                  ,:VALORCOMPRA :IVALORCOMPRA
+           END-EXEC
+
+           IF SQLCODE = 0
+              ADD 1 TO WS-CTLIDO
+           ELSE
+              IF SQLCODE NOT = +100
+                 MOVE WS-MSG03             TO WS-MSG
+                 MOVE SQLCODE              TO WS-SQLCODE
+                 GO TO 9000-ERRO-DB2
+              END-IF
+           END-IF
+           .
+      *
+       2000-PROCESSAR.
+      * VERIFICA SE A LINHA ESTA INVALIDA
+           IF IIDFORNEC    < 0  OR
+              ITIPOCOMPRA  < 0  OR
+              IVALORCOMPRA < 0
+              DISPLAY 'INDICATOR NEGATIVO...'
+           ELSE
+              IF IDFORNEC   = WS-IDFORNEC-AUX   AND
+                 TIPOCOMPRA = WS-TIPOCOMPRA-AUX
+                 ADD VALORCOMPRA TO WS-SOMA-TOTAL
+              ELSE
+                 PERFORM 2100-GRAVAR-TTCOMPRA
+              END-IF
+           END-IF
+      *
+           PERFORM 1500-LER-CURCOMPRA
+           .
+      *
+       2100-GRAVAR-TTCOMPRA.
+           MOVE WS-IDFORNEC-AUX      TO WS-IDFORNEC-TT
+           MOVE WS-TIPOCOMPRA-AUX    TO WS-TIPOCOMPRA-TT
+           MOVE WS-SOMA-TOTAL        TO WS-VALORTOTAL-TT
+           WRITE REG-TTCOMPRA FROM WS-REG-TTCOMPRA
+
+           IF SUCESSO
+              ADD 1 TO WS-CTGRAV
+      *  INICIALIZA AS VARIAVEIS AUXILIARES COM O ULTIMO LIDO
+              MOVE IDFORNEC          TO WS-IDFORNEC-AUX
+              MOVE TIPOCOMPRA        TO WS-TIPOCOMPRA-AUX
+              MOVE VALORCOMPRA       TO WS-SOMA-TOTAL
+           ELSE
+              MOVE WS-MSG04          TO WS-MSG
+              MOVE FS-TTCOMPRA       TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+           .
+
+       3000-TERMINO.
+      * LEMBRAR DE GRAVAR O ULTIMO
+           PERFORM 2100-GRAVAR-TTCOMPRA
+
+           MOVE WS-CTLIDO                  TO WS-CTLIDO-F
+           MOVE WS-CTGRAV                  TO WS-CTGRAV-F
+      *
+           DISPLAY '=================================================='
+           DISPLAY 'TOTAL DE LINHAS LIDAS NO CURSOR......: '
+                    WS-CTLIDO-F
+           DISPLAY 'TOTAL DE REGISTROS GRAVADOS TTCOMPRA.: '
+                    WS-CTGRAV-F
+           DISPLAY '=================================================='
+      *
+           CLOSE TTCOMPRA
+      *
+           IF NOT SUCESSO
+              MOVE WS-MSG05                TO WS-MSG
+              MOVE FS-TTCOMPRA             TO WS-FS
+              GO TO 9000-ERRO
+           END-IF
+      *
+           EXEC SQL
+              CLOSE CURCOMPRA
+           END-EXEC
+
+           IF SQLCODE NOT = 0
+              MOVE WS-MSG06                TO WS-MSG
+              MOVE SQLCODE                 TO WS-SQLCODE
+              GO TO 9000-ERRO-DB2
+           END-IF
+      *
+           DISPLAY ' '
+           DISPLAY '=================================================='
+           DISPLAY '             TERMINO NORMAL REF012P4              '
+           DISPLAY '=================================================='
+           .
+      *
+           COPY ROTERRO.
+           COPY ROTDB2ER.
+

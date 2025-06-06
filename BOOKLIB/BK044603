@@ -1,0 +1,4 @@
+      *BK044603 - REGISTRO DE FUNCIONARIO 
+       01  REG-A3044603.
+           10 BK044603-CPF                 PIC X(11).
+

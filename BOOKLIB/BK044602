@@ -1,0 +1,10 @@
+      *BK044602 - REGISTRO DE FUNCIONARIO 
+       01  REG-A1044602.
+           10 BK044602-CPF                 PIC X(11).
+           10 BK044602-NOME                PIC X(30).
+           10 BK044602-DDI                 PIC 9(03).
+           10 BK044602-DDD                 PIC 9(02).
+           10 BK044602-TELEFONE            PIC 9(09).
+           10 BK044602-TELEFONEFULL        PIC X(14).
+           10 BK044602-SALARIOBASE        PIC S9(8)V99 COMP-3.
+

@@ -13,17 +13,17 @@
 
        INPUT-OUTPUT                        SECTION.
        FILE-CONTROL.
-           SELECT A1044602 ASSIGN          TO A1044602
-           FILE STATUS IS FS-A1044602
+           SELECT FILE4601 ASSIGN          TO FILE4601
+           FILE STATUS IS FS-FILE4601
            .
       *----------------------------------------------------------------*
        DATA                                DIVISION.
       *----------------------------------------------------------------*
        FILE                                SECTION.
       *----------------------------------------------------------------*
-       FD  A1044602
+       FD  FILE4601
            RECORDING MODE IS F.
-           COPY BK044602.
+           COPY BK044610.
 
       *----------------------------------------------------------------*
        WORKING-STORAGE                     SECTION.
@@ -43,25 +43,27 @@
            END-EXEC.
       * INDICADORES DA TABELA 
        01  WS-INDICADORES.
-           05 INOME                        PIC S9(4) COMP.
-           05 IDDI                         PIC S9(4) COMP.
-           05 IDDD                         PIC S9(4) COMP.
-           05 ITELEFONE                     PIC S9(4) COMP.
-           05 ISALARIOBASE                 PIC S9(4) COMP.
+           05 IINSS                        PIC S9(4) COMP.
+           05 IIRRF                         PIC S9(4) COMP.
+           05 IDEPENDENTE                  PIC S9(4) COMP.
       *----------------------------------------------------------------*
       *                 VARIAVEIS DE TRABALHO                          *
       *----------------------------------------------------------------*
        01  WS-CONTADORES-COMP.
            05 WS-CTGRAV                    PIC 9(05) COMP.
-
+           05 WS-CTLIDO                    PIC 9(05) COMP.
 
        01  WS-CONTADORES-FORMATADOS.
            05 WS-CTGRAV-F                  PIC ZZ.ZZ9.
+           05 WS-CTLIDO-F                  PIC ZZ.ZZ9.
 
       *VARIAVEIS DE FILE STATUS
-       01  FS-A1044602                     PIC X(02).
-           88 SUCESSO-A1044602             VALUE '00'.
-      *    88 FIM-ARQ-A1044602             VALUE '10'.
+       01  FS-FILE4601                     PIC X(02).
+           88 SUCESSO-FILE4601             VALUE '00'.
+      *    88 FIM-ARQ-FILE4601             VALUE '10'.
+       
+       77  WS-SALARIO-INSS                 PIC S9(8)V9(2) COMP-3.
+       77  WS-ALIQUOTA-INSS                PIC S9(4)V9(2) COMP-3.
 
        77  WS-SQLCODE                      PIC +9(09).
        77  WS-MSG                          PIC X(60).
@@ -87,12 +89,12 @@
                DECLARE FILTRO1 CURSOR FOR
                    SELECT CPF
                          ,NOME
-                         ,DDI
-                         ,DDD
                          ,TELEFONE
-                         ,SALARIO_BASE
-                   FROM TBFUNC
-                   WHERE DDI = 55
+                         ,SALARIOBASE
+                         ,INSS 
+                         ,IRRF
+                   FROM FUNCIONARIOS
+                   ORDER BY CPF
            END-EXEC
 
       * ABERTURA DO CURSOR
@@ -108,10 +110,10 @@
            END-IF
 
       * ABERTURA DO ARQUIVO DE RELATORIO
-           OPEN OUTPUT A1044602
-           IF NOT SUCESSO-A1044602
-              MOVE "ERRO ABERTURA A1044602" TO WS-MSG
-              MOVE FS-A1044602             TO WS-FS
+           OPEN OUTPUT FILE4601
+           IF NOT SUCESSO-FILE4601
+              MOVE "ERRO ABERTURA FILE4601" TO WS-MSG
+              MOVE FS-FILE4601             TO WS-FS
               GO TO 9000-ERRO
            END-IF
 
@@ -123,14 +125,16 @@
                FETCH FILTRO1
                INTO :DCLFUNC-CPF
                     ,:DCLFUNC-NOME
-                    ,:DCLFUNC-DDI
-                    ,:DCLFUNC-DDD
                     ,:DCLFUNC-TELEFONE
                     ,:DCLFUNC-SALARIOBASE
+                    ,:DCLFUNC-INSS :IINSS
+                    ,:DCLFUNC-IRRF :IIRRF
+                    ,:DCLFUNC-DEPENDENTE :IDEPENDENTE
            END-EXEC
 
            IF SQLCODE = 0
               PERFORM 1600-TRATA-INDICATOR
+              ADD 1 TO WS-CTLIDO
            ELSE
               IF SQLCODE NOT = +100
               MOVE "ERRO LEITURA CURSOR FILTRO1"
@@ -142,51 +146,77 @@
            .
 
        1600-TRATA-INDICATOR.
-           IF INOME < 0
-              MOVE ALL "*"                 TO BK044602-NOME
+           IF IINSS < 0
+              MOVE ZEROS                   TO BK044610-INSS
            END-IF
 
-           IF IDDI < 0
-              MOVE ZEROS                   TO BK044602-DDI
+           IF IIRRF < 0
+              MOVE ZEROS                   TO BK044610-IRRF
            END-IF
 
-           IF IDDD < 0
-              MOVE ZEROS                   TO BK044602-DDD
-           END-IF
-
-           IF ITELEFONE < 0
-              MOVE ZEROS                   TO BK044602-TELEFONE
-           END-IF
-
-           IF ISALARIOBASE < 0
-              MOVE ZEROS                   TO BK044602-SALARIOBASE
+           IF IDEPENDENTE < 0
+              MOVE ZEROS                   TO BK044610-DEPENDENTE
            END-IF
            .
 
        2000-PROCESSAR.
-           MOVE DCLFUNC-CPF                TO BK044602-CPF
-           MOVE DCLFUNC-NOME               TO BK044602-NOME
-           MOVE DCLFUNC-DDI                TO BK044602-DDI
-           MOVE DCLFUNC-DDD                TO BK044602-DDD
-           MOVE DCLFUNC-TELEFONE           TO BK044602-TELEFONE
-           STRING BK044602-DDI DELIMITED BY SPACE
-                  BK044602-DDD DELIMITED BY SPACE
-                  BK044602-TELEFONE DELIMITED BY SPACE
-                  INTO BK044602-TELEFONEFULL
-           MOVE DCLFUNC-SALARIOBASE       TO BK044602-SALARIOBASE
 
-           WRITE REG-A1044602
-           IF NOT SUCESSO-A1044602
-              MOVE "ERRO NA GRAVACAO A1044602"
+           EVALUATE TRUE
+              WHEN DCLFUNC-SALARIOBASE <= 1500.00
+                   PERFORM 2100-TRATAR-FAIXA1
+              WHEN DCLFUNC-SALARIOBASE > 1500.00
+                   AND DCLFUNC-SALARIOBASE <= 2500.00
+                   PERFORM 2200-TRATAR-FAIXA2
+              WHEN DCLFUNC-SALARIOBASE > 2500.00
+                   AND DCLFUNC-SALARIOBASE <= 3500.00
+                   PERFORM 2300-TRATAR-FAIXA3
+              WHEN DCLFUNC-SALARIOBASE > 3500.00
+                   AND DCLFUNC-SALARIOBASE <= 7000.00
+                   PERFORM 2400-TRATAR-FAIXA4
+              WHEN OTHER
+                   PERFORM 2500-TRATAR-FAIXA5
+           END-EVALUATE.
+
+           MOVE DCLFUNC-CPF                TO BK044610-CPF
+           MOVE DCLFUNC-NOME               TO BK044610-NOME
+           MOVE DCLFUNC-TELEFONE           TO BK044610-TELEFONE
+           MOVE DCLFUNC-SALARIOBASE        TO BK044610-SALARIOBASE
+           MOVE DCLFUNC-INSS               TO BK044610-INSS
+           MOVE DCLFUNC-IRRF               TO BK044610-IRRF
+           MOVE DCLFUNC-DEPENDENTE         TO BK044610-DEPENDENTE
+
+           WRITE REG-FILE4601
+           IF NOT SUCESSO-FILE4601
+              MOVE "ERRO NA GRAVACAO FILE4601"
                                            TO WS-MSG
-              MOVE FS-A1044602             TO WS-FS
+              MOVE FS-FILE4601             TO WS-FS
               PERFORM 9000-ERRO
            END-IF
+
            ADD 1 TO WS-CTGRAV
            PERFORM 1500-LER-FILTRO1
            .
-
+       2100-TRATAR-FAIXA1.
+           COMPUTE DCLFUNC-INSS = DCLFUNC-SALARIOBASE * 0,075
+           .
+       2200-TRATAR-FAIXA2.
+           COMPUTE DCLFUNC-INSS = ((DCLFUNC-SALARIOBASE - 1500.00) 
+                                        * 0,09) + 112,50
+           .
+       2300-TRATAR-FAIXA3.
+           COMPUTE DCLFUNC-INSS = ((DCLFUNC-SALARIOBASE - 2500.00) 
+                                        * 0,12) + (112,50 + 90,00)
+           .
+       2400-TRATAR-FAIXA4.
+           COMPUTE DCLFUNC-INSS = ((DCLFUNC-SALARIOBASE - 3500.00) 
+                                     * 0,14) + (112,50 + 90,00 + 120,00)
+           .
+       2500-TRATAR-FAIXA5.
+           COMPUTE DCLFUNC-INSS = (7000.00* 0,14) + (112,50 + 90,00 
+                                        + 120,00 + 490,00)
+           .           
        3000-TERMINO.
+           MOVE WS-CTLIDO                  TO WS-CTLIDO-F
            MOVE WS-CTGRAV                  TO WS-CTGRAV-F
 
            EXEC SQL
@@ -199,11 +229,11 @@
               PERFORM 9000-ERRO-DB2
            END-IF
 
-           CLOSE A1044602
-           IF NOT SUCESSO-A1044602
-              MOVE "ERRO AO FECHAR A1044602"
+           CLOSE FILE4601
+           IF NOT SUCESSO-FILE4601
+              MOVE "ERRO AO FECHAR FILE4601"
                                            TO WS-MSG
-              MOVE FS-A1044602             TO WS-FS
+              MOVE FS-FILE4601             TO WS-FS
               PERFORM 9000-ERRO
            END-IF
 
@@ -218,7 +248,8 @@
            DISPLAY "==================================================="
            DISPLAY "        ESTATISTICA FINAL DE PROCESSAMENTO         "
            DISPLAY "==================================================="
-           DISPLAY " QTDE. DCLFUNC   LIDOS..............: " WS-CTGRAV-F
+           DISPLAY " QTDE. DCLFUNC   LIDOS..............: " WS-CTLIDO-F
+           DISPLAY " QTDE. DCLFUNC   GRAVADOS...........: " WS-CTGRAV-F
            DISPLAY "==================================================="
            DISPLAY " TEMPO TOTAL DE PROCESSAMENTO  : "
                                                WS-TEMPO-PROCESSAMENTO-F

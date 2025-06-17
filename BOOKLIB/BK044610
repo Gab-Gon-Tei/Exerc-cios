@@ -1,0 +1,19 @@
+       01  REG-FILE4601.
+      *                       CPF
+           10 BK044610-CPF          PIC X(11).
+      *                       NOME
+           10 BK044610-NOME         PIC X(30).
+      *                       TELEFONE
+           10 BK044610-TELEFONE     PIC S9(11).
+      *                       SALARIOBASE
+           10 BK044610-SALARIOBASE  PIC S9(8)V9(2) COMP-3.
+      *                       INSS
+           10 BK044610-INSS         PIC S9(4)V9(2) COMP-3.
+      *                       IRRF
+           10 BK044610-IRRF         PIC S9(4)V9(2) COMP-3.
+      *                       DEPENDENTE
+           10 BK044610-DEPENDENTE   PIC S9(1).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 7       *
+      ******************************************************************
+

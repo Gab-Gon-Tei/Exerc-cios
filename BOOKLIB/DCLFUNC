@@ -1,46 +1,47 @@
       ******************************************************************
-      * DCLGEN TABLE(TBFUNC)                                           *
+      * DCLGEN TABLE(FUNCIONARIOS)                                     *
       *        LIBRARY(FS.FSYS004.BOOKLIB(DCLFUNC))                    *
       *        ACTION(REPLACE)                                         *
       *        LANGUAGE(COBOL)                                         *
       *        NAMES(DCLFUNC-)                                         *
-      *        STRUCTURE(DCLFUNC)                                      *
+      *        STRUCTURE(DCL-FUNC)                                     *
       *        QUOTE                                                   *
       *        COLSUFFIX(YES)                                          *
       * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
       ******************************************************************
-           EXEC SQL DECLARE TBFUNC TABLE
+           EXEC SQL DECLARE FUNCIONARIOS TABLE
            ( CPF                            CHAR(11) NOT NULL,
-             NOME                           VARCHAR(30),
-             DDI                            INTEGER NOT NULL,
-             DDD                            INTEGER NOT NULL,
-             TELEFONE                       INTEGER NOT NULL,
-             SALARIO_BASE                   DECIMAL(10, 2) NOT NULL
+             NOME                           VARCHAR(30) NOT NULL,
+             TELEFONE                       CHAR(11) NOT NULL,
+             SALARIOBASE                    DECIMAL(10, 2) NOT NULL,
+             INSS                           DECIMAL(6, 2),
+             IRRF                           DECIMAL(6, 2),
+             DEPENDENTE                     DECIMAL(1, 0)
            ) END-EXEC.
       ******************************************************************
-      * COBOL DECLARATION FOR TABLE TBFUNC                             *
+      * COBOL DECLARATION FOR TABLE FUNCIONARIOS                       *
       ******************************************************************
-       01  DCLFUNC.
+       01  DCL-FUNC.
       *                       CPF
            10 DCLFUNC-CPF          PIC X(11).
            10 DCLFUNC-NOME.
-           
       *                       NOME LENGTH
               49 DCLFUNC-NOME-LEN
                  PIC S9(4) USAGE COMP.
       *                       NOME
               49 DCLFUNC-NOME-TEXT
                  PIC X(30).
-      *                       DDI
-           10 DCLFUNC-DDI          PIC S9(9) USAGE COMP.
-      *                       DDD
-           10 DCLFUNC-DDD          PIC S9(9) USAGE COMP.
       *                       TELEFONE
-           10 DCLFUNC-TELEFONE     PIC S9(9) USAGE COMP.
-      *                       SALARIO_BASE
-           10 DCLFUNC-SALARIOBASE
-              PIC S9(8)V9(2) USAGE COMP-3.
+           10 DCLFUNC-TELEFONE     PIC X(11).
+      *                       SALARIOBASE
+           10 DCLFUNC-SALARIOBASE  PIC S9(8)V9(2) USAGE COMP-3.
+      *                       INSS
+           10 DCLFUNC-INSS         PIC S9(4)V9(2) USAGE COMP-3.
+      *                       IRRF
+           10 DCLFUNC-IRRF         PIC S9(4)V9(2) USAGE COMP-3.
+      *                       DEPENDENTE
+           10 DCLFUNC-DEPENDENTE   PIC S9(1)V USAGE COMP-3.
       ******************************************************************
-      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 6       *
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 7       *
       ******************************************************************
 

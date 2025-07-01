@@ -260,6 +260,7 @@
            END-IF
 
            PERFORM 3100-FECHAR-ARQUIVOS
+           
               THRU 3100-FECHAR-ARQUIVOS-FIM.
 
        3000-FINALIZAR-FIM.             EXIT.

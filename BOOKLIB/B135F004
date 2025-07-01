@@ -8,5 +8,5 @@
       * AUTOR: GABRIEL TEIXEIRA   DATA DE CRIACAO: 01/07/2025          *
       ******************************************************************
            05 B135F004-CPF                 PIC X(011).                 
-           05 B135F004-SALARIO-BASE        PIC 9(100).                     
+           05 B135F004-SALARIO-BASE        PIC S9(8)V99 COMP-3.                 
            05 FILLER                       PIC X(200).

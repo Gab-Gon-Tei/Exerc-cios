@@ -1,0 +1,21 @@
+      ******************************************************************
+      *              CENTRO DE FORMACAO - CURSO MAINFRAME              *
+      * ============================================================== *
+      * B135F005: UTILIZADO COMO PADRAO PARA TRAFEGAR INFORMACOES EM   *
+      *           TODOS OS MODULOS SO CURSO MAINIRAME DO DEPERTAMENTO  *
+      *           DE FORMACAO.                                         *
+      *                                                                *
+      * AUTOR: GABRIEL TEIXEIRA   DATA DE CRIACAO: 01/07/2025  *
+      ******************************************************************
+           05 B135F005-CPF                 PIC X(011).                 
+           05 B135F005-NOME                PIC 9(100).                     
+           05 B135F005-TELEFONE            PIC X(100).                     
+           05 B135F005-ID-CARGO            PIC X(4).                     
+           05 B135F005-ID-DEPARTAMENTO     PIC X(4).
+           05 B135F005-SALARIO-BASE        PIC S9(8)V99 COMP-3.                
+           05 B135F005-ADMISSAO            PIC X(010).               
+           05 B135F005-DEMISSAO            PIC X(010).               
+           05 B135F005-QTD-DEPENDENTES     PIC 9(2).                     
+           05 B135F005-SOLICITOU-VT        PIC 9(1).                
+           05 B135F005-CONTRIB-SINDICAL    PIC 9(1).
+           05 FILLER                       PIC X(200).

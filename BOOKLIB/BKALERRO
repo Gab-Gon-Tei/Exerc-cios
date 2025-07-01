@@ -1,0 +1,28 @@
+      ******************************************************************00010014
+      *              CENTRO DE FORMACAO - CURSO MAINFRAME              *00010115
+      * ============================================================== *00010315
+      * BKALERRO: UTILIZADO COMO PADRAO PARA TRAFEGAR INFORMACOES EM   *00010417
+      *           TODOS OS MODULOS SO CURSO MAINIRAME DO DEPERTAMENTO  *00030015
+      *           DE FORMACAO.                                         *00040014
+      *                                                                *00050014
+      * AUTOR: DALSON DOS ANJOS CAIVANO   DATA DE CRIACAO: 24/03/2025  *00060014
+      ******************************************************************00070014
+           05 BKALERRO-PROGRAMA        PIC  X(008).                     00080020
+           05 BKALERRO-CODIGO          PIC  9(001).                     00080120
+           05 BKALERRO-PARAGRAFO       PIC  X(030).                     00080220
+           05 BKALERRO-ARQ-MENSAGEM    PIC  X(100).                     00080321
+           05 BKALERRO-ABEND.                                           00081017
+              10 BKALERRO-RESULTADO    PIC  9(001).                     00082020
+              10 BKALERRO-NUMERADOR    PIC  9(001)  VALUE 1.            00083020
+              10 BKALERRO-DENOMINADOR  PIC  9(001)  VALUE 0.            00084020
+           05 BKALERRO-ARQUIVO.                                         00090017
+              10 BKALERRO-ARQ-NOME     PIC  X(030).                     00100020
+              10 BKALERRO-ARQ-MOMENTO  PIC  X(010).                     00110020
+              10 BKALERRO-ARQ-FILESTATUS                                00120017
+                                       PIC  9(002).                     00130020
+           05 BKALERRO-DB2.                                             00140020
+              10 BKALERRO-DB2-NM-TAB   PIC  X(030).                     00150020
+              10 BKALERRO-DB2-SQLCODE  PIC S9(009).                     00160020
+              10 BKALERRO-DB2-TP-ACESSO                                 00170020
+                                       PIC  X(006).                     00180020
+

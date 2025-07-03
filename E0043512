@@ -96,6 +96,10 @@
 
            05  WRK-FS-FILE8            PIC  X(02)  VALUE SPACES.
                88  WRK-FS-FILE8-OK                 VALUE '00'.
+       01  WS-VARIAVEIS.
+           05  WS-SOMA-HORAS-EXTRAS         PIC 9(2)V99.
+           05  WS-VALOR-HORA-EXTRA          PIC S9(8)V99 COMP-3.
+           05  WS-VALOR-EXTRA               PIC S9(8)V99 COMP-3.
 
       * COPYBOOKS
        01  WRK-BKALERRO.
@@ -139,6 +143,8 @@
            IF  WRK-DEBUG-SIM
                DISPLAY ' 1000-INICIAR'
            END-IF
+
+           INITIALIZE WS-VARIAVEIS
 
            PERFORM 1100-ABRIR-ARQUIVOS
               THRU 1100-ABRIR-ARQUIVOS-FIM
@@ -215,12 +221,15 @@
            
            EVALUATE TRUE
                WHEN B135F005-CPF = B135F007-CPF
+                  ADD B135F007-QTD-HORAS-EXTRAS TO WS-SOMA-HORAS-EXTRAS
                   PERFORM 9100-LER-FILE7
                      THRU 9100-LER-FILE7-FIM
                WHEN B135F005-CPF > B135F007-CPF
                   PERFORM 9100-LER-FILE7
                      THRU 9100-LER-FILE7-FIM
                WHEN B135F005-CPF < B135F007-CPF
+                  PERFORM 9300-CALCULA-VALOR-HORA-EXTRA
+                     THRU 9300-CALCULA-VALOR-HORA-EXTRA-FIM
                   PERFORM 2100-GRAVAR-FILE8
                      THRU 2100-GRAVAR-FILE8-FIM
                   PERFORM 9100-LER-FILE5
@@ -239,6 +248,20 @@
                DISPLAY ' 2100-GRAVAR-FILE8'
            END-IF
 
+           MOVE B135F005-CPF                TO B135F008-CPF
+           MOVE B135F005-NOME               TO B135F008-NOME
+           MOVE B135F005-TELEFONE           TO B135F008-TELEFONE
+           MOVE B135F005-ID-CARGO           TO B135F008-ID-CARGO
+           MOVE B135F005-ID-DEPARTAMENTO    TO B135F008-ID-DEPARTAMENTO
+           MOVE B135F005-SALARIO-BASE       TO B135F008-SALARIO-BASE
+           MOVE B135F005-ADMISSAO           TO B135F008-ADMISSAO
+           MOVE B135F005-DEMISSAO           TO B135F008-DEMISSAO
+           MOVE B135F005-QTD-DEPENDENTES    TO B135F008-QTD-DEPENDENTES
+           MOVE B135F005-SOLICITOU-VT       TO B135F008-SOLICITOU-VT
+           MOVE B135F005-CONTRIB-SINDICAL   TO B135F008-CONTRIB-SINDICAL
+           MOVE WS-SOMA-HORAS-EXTRAS        TO B135F008-QTD-HORAS-EXTRAS
+           MOVE WS-VALOR-HORA-EXTRA         TO B135F008-VALOR-HORA-EXTRA
+
            WRITE REG-FILE8
 
            IF  NOT  WRK-FS-FILE8-OK
@@ -254,6 +277,10 @@
 
            END-IF.
 
+           MOVE ZEROS TO WS-SOMA-HORAS-EXTRAS
+           MOVE ZEROS TO WS-VALOR-HORA-EXTRA
+           MOVE ZEROS TO WS-VALOR-EXTRA.
+
        2100-GRAVAR-FILE8-FIM.        EXIT.
       *----------------------------------------------------------------*
       * 3000-FINALIZAR: SAO REALIZADOS TODOS OS PROCEDIMENTOS PARA FI- *
@@ -265,6 +292,9 @@
            IF  WRK-DEBUG-SIM
                DISPLAY ' 3000-FINALIZAR'
            END-IF
+
+           PERFORM 2100-GRAVAR-FILE8
+              THRU 2100-GRAVAR-FILE8-FIM.
 
            PERFORM 3100-FECHAR-ARQUIVOS
               THRU 3100-FECHAR-ARQUIVOS-FIM.
@@ -357,50 +387,6 @@
       * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
       *       CORRETA COMO: ABRIR ARQUIVOS                             *
       *----------------------------------------------------------------*
-       9200-CALCULA-HORAS-EXTRAS       SECTION.
-           IF  WRK-DEBUG-SIM
-               DISPLAY ' 9200-CALCULA-HORAS-EXTRAS'
-           END-IF
-           
-           MOVE B135F007-DATA-HORA-INICIO(23:2) TO WS-HORA-I
-           MOVE B135F007-DATA-HORA-INICIO(26:2) TO WS-MIN-I
-           MOVE B135F007-DATA-HORA-INICIO(29:2) TO WS-SEG-I
-           MOVE B135F007-DATA-HORA-INICIO(32:2) TO WS-CENT-I 
-
-           MOVE B135F007-DATA-HORA-FIM(46:2) TO WS-HORA-F
-           MOVE B135F007-DATA-HORA-FIM(49:2) TO WS-MIN-F
-           MOVE B135F007-DATA-HORA-FIM(52:2) TO WS-SEG-F
-           MOVE B135F007-DATA-HORA-FIM(55:2) TO WS-CENT-F
-
-           COMPUTE WS-DIFERENCA = ( WS-HORA-F * 360000 +                
-                                    WS-MIN-F * 6000 +                   
-                                    WS-SEG-F * 100 +                    
-                                    WS-CENT-F) -                        
-                                  ( WS-HORA-I * 360000 +                
-                                    WS-MIN-I * 6000 +                   
-                                    WS-SEG-I * 100 +                    
-                                    WS-CENT-I)                          
-           COMPUTE WS-HORA-P = WS-DIFERENCA / 360000                    
-           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-HORA-P * 360000     
-           COMPUTE WS-MIN-P = WS-DIFERENCA / 6000                       
-           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-MIN-P * 6000        
-           COMPUTE WS-SEG-P = WS-DIFERENCA / 100                        
-           COMPUTE WS-DIFERENCA = WS-DIFERENCA - WS-SEG-P * 100         
-           COMPUTE WS-CENT-P = WS-DIFERENCA     
-
-           MOVE WS-DIFERENCA               TO B135F007-QTD-HORAS-EXTRAS                        
-           MOVE WS-HORA-P                  TO WS-HORA-PF                
-           MOVE WS-MIN-P                   TO WS-MIN-PF                 
-           MOVE WS-SEG-P                   TO WS-SEG-PF                 
-           MOVE WS-CENT-P                  TO WS-CENT-PF                
-           .   
-           .
-       9200-CALCULA-HORAS-EXTRAS-FIM.  EXIT.
-      *----------------------------------------------------------------*
-      * 9100-LER-ARQUIVO                                               *
-      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
-      *       CORRETA COMO: ABRIR ARQUIVOS                             *
-      *----------------------------------------------------------------*
        9100-LER-FILE7                  SECTION.
 
            IF  WRK-DEBUG-SIM
@@ -422,6 +408,78 @@
            END-IF.
 
        9100-LER-FILE7-FIM.             EXIT.
+      *----------------------------------------------------------------*
+      * 9100-LER-ARQUIVO                                               *
+      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
+      *       CORRETA COMO: ABRIR ARQUIVOS                             *
+      *----------------------------------------------------------------*
+       9200-CALCULA-HORAS-EXTRAS       SECTION.
+           IF  WRK-DEBUG-SIM
+               DISPLAY ' 9200-CALCULA-HORAS-EXTRAS'
+           END-IF
+
+           MOVE B135F007-DATA-HORA-INICIO(12:2) TO WS-HORA-I
+           MOVE B135F007-DATA-HORA-INICIO(15:2) TO WS-MIN-I
+           MOVE B135F007-DATA-HORA-INICIO(18:2) TO WS-SEG-I
+           MOVE B135F007-DATA-HORA-INICIO(21:2) TO WS-CENT-I
+
+           MOVE B135F007-DATA-HORA-FIM(12:2) TO WS-HORA-F
+           MOVE B135F007-DATA-HORA-FIM(15:2) TO WS-MIN-F
+           MOVE B135F007-DATA-HORA-FIM(18:2) TO WS-SEG-F
+           MOVE B135F007-DATA-HORA-FIM(21:2) TO WS-CENT-F
+
+           MOVE B135F007-DATA-HORA-INICIO(12:2) TO WS-HORA-I
+           MOVE B135F007-DATA-HORA-INICIO(15:2) TO WS-MIN-I
+           MOVE B135F007-DATA-HORA-INICIO(18:2) TO WS-SEG-I
+           MOVE B135F007-DATA-HORA-INICIO(21:2) TO WS-CENT-I
+
+           MOVE B135F007-DATA-HORA-FIM(12:2) TO WS-HORA-F
+           MOVE B135F007-DATA-HORA-FIM(15:2) TO WS-MIN-F
+           MOVE B135F007-DATA-HORA-FIM(18:2) TO WS-SEG-F
+           MOVE B135F007-DATA-HORA-FIM(21:2) TO WS-CENT-F
+
+           COMPUTE WS-DIFERENCA = ( WS-HORA-F * 360000 +                
+                                    WS-MIN-F * 6000 +                   
+                                    WS-SEG-F * 100 +                    
+                                    WS-CENT-F) -                        
+                                  ( WS-HORA-I * 360000 +                
+                                    WS-MIN-I * 6000 +                   
+                                    WS-SEG-I * 100 +                    
+                                    WS-CENT-I)                          
+
+           MOVE WS-DIFERENCA               TO B135F007-QTD-HORAS-EXTRAS         
+           .
+       9200-CALCULA-HORAS-EXTRAS-FIM.  EXIT.
+      *----------------------------------------------------------------*
+      * 9100-LER-ARQUIVO                                               *
+      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
+      *       CORRETA COMO: ABRIR ARQUIVOS                             *
+      *----------------------------------------------------------------*
+       9300-CALCULA-VALOR-HORA-EXTRA       SECTION.
+           IF  WRK-DEBUG-SIM
+               DISPLAY ' 9300-CALCULA-VALOR-HORA-EXTRA'
+           END-IF                       
+
+           IF WS-SOMA-HORAS-EXTRAS NOT = 0
+               EVALUATE B135F005-ID-CARGO
+                   WHEN 0020
+                   COMPUTE WS-VALOR-EXTRA = 
+                           (B135F005-SALARIO-BASE / 30) * 0,20
+
+                   WHEN 0040
+                   COMPUTE WS-VALOR-EXTRA = 
+                           (B135F005-SALARIO-BASE / 30) * 0,40
+
+                    WHEN 0055
+                    COMPUTE WS-VALOR-EXTRA = 
+                           (B135F005-SALARIO-BASE / 30) * 0,55
+               END-EVALUATE
+
+               COMPUTE WS-VALOR-HORA-EXTRA = 
+                            WS-SOMA-HORAS-EXTRAS * WS-VALOR-EXTRA
+           END-IF       
+           .
+       9300-CALCULA-VALOR-HORA-EXTRA-FIM.  EXIT.
       *----------------------------------------------------------------*
       * 9999-ABEND                                                     *
       * DESC: UMA VEZ QUE O DIMENTOS PARA FINALIZAR O PROGRAMA DA FOR- *

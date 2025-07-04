@@ -4,8 +4,8 @@
       *                                                                *
       ******************************************************************
        IDENTIFICATION                  DIVISION.
-          PROGRAM-ID.                  E0043512.
-          AUTHOR                       FOURSYS.
+          PROGRAM-ID.                  E0103512.
+          AUTHOR                       PEDRO.
       ******************************************************************
       *                                                                *
       *          E N V I R O N M E N T         D I V I S I O N         *
@@ -27,14 +27,14 @@
 
        FILE-CONTROL.
 
-           SELECT FILE5 ASSIGN TO FILE5
-                  FILE STATUS IS WRK-FS-FILE5.
+           SELECT FILE005 ASSIGN TO FILE005
+                  FILE STATUS IS WRK-FS-FILE005.
 
-           SELECT FILE7 ASSIGN TO FILE7
-                  FILE STATUS IS WRK-FS-FILE7.
+           SELECT FILE007 ASSIGN TO FILE007
+                  FILE STATUS IS WRK-FS-FILE007.
 
-           SELECT FILE8 ASSIGN TO FILE8
-                  FILE STATUS IS WRK-FS-FILE8.
+           SELECT FILE008 ASSIGN TO FILE8
+                  FILE STATUS IS WRK-FS-FILE008.
 
       ******************************************************************
       *                                                                *
@@ -48,28 +48,28 @@
       *----------------------------------------------------------------*
        FILE SECTION.
 
-       FD  FILE5
-           RECORDING MODE IS F.
-      *     LABEL RECORD IS STANDARD
-      *     BLOCK CONTAINS 364 RECORDS
-      *     DATA RECORD IS FD-FILE5-REGISTRO.
-       01  REG-FILE5.
+       FD  FILE005
+           RECORDING MODE IS F
+           LABEL RECORD IS STANDARD
+           BLOCK CONTAINS 364 RECORDS
+           DATA RECORD IS REG-FILE005.
+       01  REG-FILE005.
            COPY B135F005.
 
-       FD  FILE7
-           RECORDING MODE IS F.
-      *     LABEL RECORD IS STANDARD
-      *     BLOCK CONTAINS 61 RECORDS
-      *     DATA RECORD IS FD-FILE7-REGISTRO.
-       01  REG-FILE7.
+       FD  FILE007
+           RECORDING MODE IS F
+           LABEL RECORD IS STANDARD
+           BLOCK CONTAINS 61 RECORDS
+           DATA RECORD IS REG-FILE007.
+       01  REG-FILE007.
            COPY B135F007.
 
-       FD  FILE8
-           RECORDING MODE IS F.
-      *     LABEL RECORD IS STANDARD
-      *     BLOCK CONTAINS 374 RECORDS
-      *     DATA RECORD IS FD-FILE8-REGISTRO.
-       01  REG-FILE8.
+       FD  FILE008
+           RECORDING MODE IS F
+           LABEL RECORD IS STANDARD
+           BLOCK CONTAINS 374 RECORDS
+           DATA RECORD IS REG-FILE008.
+       01  REG-FILE008.
            COPY B135F008.
 
       *-------------------------*
@@ -86,27 +86,30 @@
       * FILE STATUS
        01  WRK-STATUS.
 
-           05  WRK-FS-FILE5            PIC  X(02)  VALUE SPACES.
-               88  WRK-FS-FILE5-OK                 VALUE '00'.
-               88  WRK-FS-FILE5-EOF                VALUE '10'.
+           05  WRK-FS-FILE005            PIC  X(02)  VALUE SPACES.
+               88  WRK-FS-FILE005-OK                 VALUE '00'.
+               88  WRK-FS-FILE005-EOF                VALUE '10'.
 
-           05  WRK-FS-FILE7            PIC  X(02)  VALUE SPACES.
-               88  WRK-FS-FILE7-OK                 VALUE '00'.
-               88  WRK-FS-FILE7-EOF                VALUE '10'.
+           05  WRK-FS-FILE007            PIC  X(02)  VALUE SPACES.
+               88  WRK-FS-FILE007-OK                 VALUE '00'.
+               88  WRK-FS-FILE007-EOF                VALUE '10'.
 
-           05  WRK-FS-FILE8            PIC  X(02)  VALUE SPACES.
-               88  WRK-FS-FILE8-OK                 VALUE '00'.
-       01  WS-VARIAVEIS.
-           05  WS-QTD-HORAS-EXTRA           PIC 9(2)V99.
-           05  WS-ACUMULA-HORAS-EXTRAS      PIC 9(2)V99.
-           05  WS-VALOR-HORA-EXTRA          PIC S9(8)V99 COMP-3.
-           05  WS-VALOR-HORA               PIC S9(8)V99 COMP-3.
+           05  WRK-FS-FILE008            PIC  X(02)  VALUE SPACES.
+               88  WRK-FS-FILE008-OK                 VALUE '00'.
+
+       77  HORA-INICIO                 PIC 9(04).
+       77  MINUTO-INICIO               PIC 9(04).
+       77  HORA-FIM                    PIC 9(04).
+       77  MINUTO-FIM                  PIC 9(04).
+       77  TOTAL-MINUTOS-INICIO        PIC 9(04)V99.
+       77  TOTAL-MINUTOS-FIM           PIC 9(04)V99.
+       77  HORAS-EXTRAS                PIC 9(04)V99.
+       77  VALOR-TOTAL                 PIC 9(08)V99 COMP-3.
+
 
       * COPYBOOKS
        01  WRK-BKALERRO.
            COPY BKALERRO.
-
-           COPY BKHREXT.
       ******************************************************************
       *                                                                *
       *          P R O C E D U R E             D I V I S I O N         *
@@ -127,7 +130,7 @@
 
            PERFORM 2000-PROCESSAR
               THRU 2000-PROCESSAR-FIM
-             UNTIL WRK-FS-FILE5-EOF AND WRK-FS-FILE7-EOF
+             UNTIL WRK-FS-FILE005-EOF AND WRK-FS-FILE007-EOF
 
            PERFORM 3000-FINALIZAR
               THRU 3000-FINALIZAR-FIM
@@ -145,16 +148,25 @@
                DISPLAY ' 1000-INICIAR'
            END-IF
 
-           INITIALIZE WS-VARIAVEIS
+           MOVE 0                          TO HORA-INICIO
+           MOVE 0                          TO MINUTO-INICIO
+           MOVE 0                          TO HORA-FIM
+           MOVE 0                          TO MINUTO-FIM
+           MOVE 0                          TO TOTAL-MINUTOS-INICIO
+           MOVE 0                          TO TOTAL-MINUTOS-FIM
+           MOVE 0                          TO HORAS-EXTRAS
+           MOVE 0                          TO VALOR-TOTAL
 
            PERFORM 1100-ABRIR-ARQUIVOS
               THRU 1100-ABRIR-ARQUIVOS-FIM
 
            PERFORM 9100-LER-FILE5
-              THRU 9100-LER-FILE5-FIM.
+              THRU 9100-LER-FILE5-FIM
+           PERFORM 9200-LER-FILE7
+              THRU 9200-LER-FILE7-FIM
 
-           PERFORM 9100-LER-FILE7
-              THRU 9100-LER-FILE7-FIM.
+
+           .
 
        1000-INICIAR-FIM.               EXIT.
       *----------------------------------------------------------------*
@@ -168,39 +180,37 @@
                DISPLAY '  1100-ABRIR-ARQUIVOS'
            END-IF
 
-           OPEN INPUT FILE5
+           OPEN INPUT FILE005
 
-           IF  NOT  WRK-FS-FILE5-OK
-
+           IF  NOT  WRK-FS-FILE005-OK
+               MOVE '1100-ABRIR-ARQUIVOS' TO BKALERRO-PARAGRAFO
                MOVE 'FILE5'            TO BKALERRO-ARQ-NOME
                MOVE 'ABERTURA'         TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE5       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE005       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
 
-           END-IF.
+           END-IF
+           OPEN INPUT FILE007
 
-           OPEN INPUT FILE7
-
-           IF  NOT  WRK-FS-FILE5-OK
-
-               MOVE 'FILE5'            TO BKALERRO-ARQ-NOME
+           IF  NOT  WRK-FS-FILE007-OK
+               MOVE 'TO BKALERRO-PARAGRAFO' TO BKALERRO-PARAGRAFO
+               MOVE 'FILE7'            TO BKALERRO-ARQ-NOME
                MOVE 'ABERTURA'         TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE5       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE007       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
 
-           END-IF.
+           END-IF
+           OPEN OUTPUT FILE008
 
-           OPEN OUTPUT FILE8
-
-           IF  NOT  WRK-FS-FILE8-OK
-
+           IF  NOT  WRK-FS-FILE008-OK
+               MOVE 'TO BKALERRO-PARAGRAFO' TO BKALERRO-PARAGRAFO
                MOVE 'FILE8'            TO BKALERRO-ARQ-NOME
                MOVE 'ABERTURA'         TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE8       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE008       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
@@ -218,39 +228,32 @@
                DISPLAY ' 2000-PROCESSAR'
            END-IF
 
-
-
            EVALUATE TRUE
-               WHEN B135F005-CPF = B135F007-CPF
-                  PERFORM 9200-CALCULA-HORAS-EXTRAS
-                     THRU 9200-CALCULA-HORAS-EXTRAS-FIM
-                      ADD WS-QTD-HORAS-EXTRA TO WS-ACUMULA-HORAS-EXTRAS
-                  PERFORM 9100-LER-FILE7
-                     THRU 9100-LER-FILE7-FIM
-               WHEN B135F005-CPF > B135F007-CPF
-                  PERFORM 9100-LER-FILE7
-                     THRU 9100-LER-FILE7-FIM
-               WHEN B135F005-CPF < B135F007-CPF
-                  PERFORM 9300-CALCULA-VALOR-EXTRA
-                     THRU 9300-CALCULA-VALOR-EXTRA-FIM
-                  PERFORM 2100-GRAVAR-FILE8
-                     THRU 2100-GRAVAR-FILE8-FIM
-                  PERFORM 9100-LER-FILE5
-                     THRU 9100-LER-FILE5-FIM
+              WHEN B135F005-CPF = B135F007-CPF
+                   PERFORM 9000-CALCULA-EXTRA
+                   PERFORM 9200-LER-FILE7
+              WHEN B135F005-CPF < B135F007-CPF
+      *COLOCAR IF PARA PERGUNTAR SE ELE TEM WTD D EHORAS
+                   PERFORM 9000-CALCULA-VALOR
+                      THRU 9000-CALCULA-VALOR-FIM
+                   PERFORM 2500-GRAVAR
+                   PERFORM 9100-LER-FILE5
+              WHEN B135F005-CPF > B135F007-CPF
+                   PERFORM 9999-ABEND
+                      THRU 9999-ABEND-FIM
            END-EVALUATE.
 
 
-       2000-PROCESSAR-FIM.             EXIT.
-      *----------------------------------------------------------------*
-      * 2100-PROCESSAR TODA A REGRA DE NEGOCIO DEVE ESTAR PRESENTE NES-*
-      *    SE PARAGRAFO                                                *
-      *----------------------------------------------------------------*
-       2100-GRAVAR-FILE8                  SECTION.
 
+       2000-PROCESSAR-FIM.             EXIT.
+
+       2500-GRAVAR                     SECTION.
            IF  WRK-DEBUG-SIM
-               DISPLAY ' 2100-GRAVAR-FILE8'
+               DISPLAY ' 2500-GRAVAR'
            END-IF
 
+           PERFORM 9000-TRATA-VARIAVEIS
+              THRU 9000-TRATA-VARIAVEIS-FIM
 
            MOVE B135F005-CPF                TO B135F008-CPF
            MOVE B135F005-NOME               TO B135F008-NOME
@@ -258,35 +261,29 @@
            MOVE B135F005-ID-CARGO           TO B135F008-ID-CARGO
            MOVE B135F005-ID-DEPARTAMENTO    TO B135F008-ID-DEPARTAMENTO
            MOVE B135F005-SALARIO-BASE       TO B135F008-SALARIO-BASE
-           MOVE B135F005-ADMISSAO           TO B135F008-ADMISSAO
-           MOVE B135F005-DEMISSAO           TO B135F008-DEMISSAO
+           MOVE B135F005-DATA-ADMISSAO      TO B135F008-DATA-ADMISSAO
+           MOVE B135F005-DATA-DEMISSAO      TO B135F008-DATA-DEMISSAO
            MOVE B135F005-QTD-DEPENDENTES    TO B135F008-QTD-DEPENDENTES
            MOVE B135F005-SOLICITOU-VT       TO B135F008-SOLICITOU-VT
            MOVE B135F005-CONTRIB-SINDICAL   TO B135F008-CONTRIB-SINDICAL
-           MOVE WS-ACUMULA-HORAS-EXTRAS     TO B135F008-QTD-HORAS-EXTRAS
-           MOVE WS-VALOR-HORA-EXTRA         TO B135F008-VALOR-HORA-EXTRA
+           MOVE HORAS-EXTRAS                TO B135F008-QTD-HORAS-EXTRAS
+           MOVE VALOR-TOTAL                 TO B135F008-VALOR-HORA-EXTRA
 
-           WRITE REG-FILE8
 
-           IF  NOT  WRK-FS-FILE8-OK
+           WRITE REG-FILE008
+           IF NOT WRK-FS-FILE007-OK
+              MOVE '2500-GRAVAR' TO BKALERRO-PARAGRAFO
+              MOVE 'ERRO AO GRAVAR'        TO BKALERRO-ARQ-MENSAGEM
+              MOVE WRK-FS-FILE008            TO BKALERRO-ARQ-FILESTATUS
+              PERFORM 9999-ABEND
+                 THRU 9999-ABEND-FIM
+           END-IF
+           MOVE 0 TO VALOR-TOTAL
+           MOVE 0 TO HORAS-EXTRAS
+           .
 
-               MOVE '2100-GRAVAR-FILE8'
-                                       TO BKALERRO-PARAGRAFO
-               MOVE 'FILE8'            TO BKALERRO-ARQ-NOME
-               MOVE 'GRAVACAO'        TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE8       TO BKALERRO-ARQ-FILESTATUS
+       2500-GRAVAR-FIM.                EXIT.
 
-               PERFORM 9999-ABEND
-                  THRU 9999-ABEND-FIM
-
-           END-IF.
-
-           MOVE ZEROS TO WS-ACUMULA-HORAS-EXTRAS
-           MOVE ZEROS TO WS-VALOR-HORA-EXTRA
-           MOVE ZEROS TO WS-VALOR-HORA.
-           MOVE ZEROS TO WS-QTD-HORAS-EXTRA.
-
-       2100-GRAVAR-FILE8-FIM.        EXIT.
       *----------------------------------------------------------------*
       * 3000-FINALIZAR: SAO REALIZADOS TODOS OS PROCEDIMENTOS PARA FI- *
       *    NALIZAR O PROGRAMA DA FORMA CORRETA. OS ARQUIVOS SAO FECHA- *
@@ -297,9 +294,6 @@
            IF  WRK-DEBUG-SIM
                DISPLAY ' 3000-FINALIZAR'
            END-IF
-
-      *     PERFORM 2100-GRAVAR-FILE8
-      *        THRU 2100-GRAVAR-FILE8-FIM.
 
            PERFORM 3100-FECHAR-ARQUIVOS
               THRU 3100-FECHAR-ARQUIVOS-FIM.
@@ -315,52 +309,122 @@
                DISPLAY '  3100-FECHAR-ARQUIVOS'
            END-IF
 
-           CLOSE FILE5.
+           CLOSE FILE005
 
-           IF  NOT  WRK-FS-FILE5-OK
+           IF  NOT  WRK-FS-FILE005-OK
 
                MOVE '3100-FECHAR-ARQUIVOS'
                                        TO BKALERRO-PARAGRAFO
                MOVE 'FILE5'            TO BKALERRO-ARQ-NOME
                MOVE 'FECHAMENTO'       TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE5       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE005       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
 
-           END-IF.
+           END-IF
+           CLOSE FILE007
 
-           CLOSE FILE7.
-
-           IF  NOT  WRK-FS-FILE7-OK
+           IF  NOT  WRK-FS-FILE007-OK
 
                MOVE '3100-FECHAR-ARQUIVOS'
                                        TO BKALERRO-PARAGRAFO
                MOVE 'FILE7'            TO BKALERRO-ARQ-NOME
                MOVE 'FECHAMENTO'       TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE7       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE007       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
 
-           END-IF.
+           END-IF
+           CLOSE FILE008
 
-           CLOSE FILE8.
-
-           IF  NOT  WRK-FS-FILE8-OK
+           IF  NOT  WRK-FS-FILE008-OK
 
                MOVE '3100-FECHAR-ARQUIVOS'
                                        TO BKALERRO-PARAGRAFO
                MOVE 'FILE8'            TO BKALERRO-ARQ-NOME
                MOVE 'FECHAMENTO'       TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-FILE8       TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-FILE008       TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
 
            END-IF.
 
+
        3100-FECHAR-ARQUIVOS-FIM.       EXIT.
+       9000-TRATA-VARIAVEIS           SECTION.
+           IF B135F005-CPF             = SPACES
+               PERFORM 9999-ABEND
+                   THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-TELEFONE        IS NOT  NUMERIC
+            AND B135F005-TELEFONE = ZEROS
+           PERFORM 9999-ABEND
+                   THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-ID-CARGO        IS NOT NUMERIC
+               PERFORM 9999-ABEND
+               THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-ID-DEPARTAMENTO IS NOT NUMERIC
+               PERFORM 9999-ABEND
+               THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-SALARIO-BASE    IS NOT NUMERIC
+           AND B135F005-SALARIO-BASE = 0
+               PERFORM 9999-ABEND
+               THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-QTD-DEPENDENTES IS NOT NUMERIC
+               PERFORM 9999-ABEND
+                THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-SOLICITOU-VT    IS NOT NUMERIC
+           PERFORM 9999-ABEND
+            THRU 9999-ABEND-FIM
+           END-IF
+           IF B135F005-CONTRIB-SINDICAL IS NOT NUMERIC
+               PERFORM 9999-ABEND
+               THRU 9999-ABEND-FIM
+           END-IF.
+       9000-TRATA-VARIAVEIS-FIM.       EXIT.
+       9000-CALCULA-EXTRA             SECTION.
+           IF  WRK-DEBUG-SIM
+               DISPLAY '9000-CALCULA-EXTRA'
+           END-IF
+           MOVE B135F007-DATA-HORA-INICIO(12:2) TO HORA-INICIO
+           MOVE B135F007-DATA-HORA-INICIO(15:2) TO MINUTO-INICIO
+           MOVE B135F007-DATA-HORA-FIM(12:2)    TO HORA-FIM
+           MOVE B135F007-DATA-HORA-FIM(15:2)    TO MINUTO-FIM
+           COMPUTE TOTAL-MINUTOS-INICIO = (HORA-INICIO * 60)
+                + MINUTO-INICIO
+           COMPUTE TOTAL-MINUTOS-FIM    = (HORA-FIM    * 60)
+                + MINUTO-FIM
+           COMPUTE HORAS-EXTRAS = (TOTAL-MINUTOS-FIM
+                - TOTAL-MINUTOS-INICIO) / 60
+           .
+       9000-CALCULA-EXTRA-FIM.        EXIT.
+       9000-CALCULA-VALOR             SECTION.
+           IF  WRK-DEBUG-SIM
+               DISPLAY '9000-CALCULA-VALOR'
+           END-IF
+           IF HORAS-EXTRAS NOT = 0
+               EVALUATE TRUE
+                  WHEN B135F005-ID-CARGO = 0001
+     	                 COMPUTE VALOR-TOTAL = ((B135F005-SALARIO-BASE
+                               / 30) * 0,2)  * HORAS-EXTRAS
+   	              WHEN B135F005-ID-CARGO = 0002
+                       COMPUTE VALOR-TOTAL = ((B135F005-SALARIO-BASE
+                               / 30) * 0,4) * HORAS-EXTRAS
+   	              WHEN B135F005-ID-CARGO = 0003
+                       COMPUTE VALOR-TOTAL = ((B135F005-SALARIO-BASE
+                               / 30) * 0,55) * HORAS-EXTRAS
+               END-EVALUATE
+           END-IF
+           .
+       9000-CALCULA-VALOR-FIM.        EXIT.
       *----------------------------------------------------------------*
       * 9100-LER-ARQUIVO                                               *
       * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
@@ -372,109 +436,42 @@
                DISPLAY ' 9100-LER-FILE5'
            END-IF
 
-           READ FILE5
+           READ FILE005
 
-           IF  WRK-FS-FILE5-OK
-               CONTINUE
-           ELSE
-               IF WRK-FS-FILE5-EOF
-                   MOVE HIGH-VALUE TO B135F005-CPF
-               ELSE
-                   MOVE 'FILE5'            TO BKALERRO-ARQ-NOME
-                   MOVE 'LEITURA'          TO BKALERRO-ARQ-MOMENTO
-                   MOVE WRK-FS-FILE5       TO BKALERRO-ARQ-FILESTATUS
+           IF  NOT WRK-FS-FILE005-OK
+           AND NOT WRK-FS-FILE005-EOF
 
-                   PERFORM 9999-ABEND
-                   THRU 9999-ABEND-FIM
-                END-IF
+               MOVE 'FILE5'            TO BKALERRO-ARQ-NOME
+               MOVE 'LEITURA'          TO BKALERRO-ARQ-MOMENTO
+               MOVE WRK-FS-FILE005       TO BKALERRO-ARQ-FILESTATUS
+
+               PERFORM 9999-ABEND
+                  THRU 9999-ABEND-FIM
+
            END-IF.
-
-
 
        9100-LER-FILE5-FIM.             EXIT.
-      *----------------------------------------------------------------*
-      * 9100-LER-ARQUIVO                                               *
-      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
-      *       CORRETA COMO: ABRIR ARQUIVOS                             *
-      *----------------------------------------------------------------*
-       9100-LER-FILE7                  SECTION.
+       9200-LER-FILE7                  SECTION.
 
            IF  WRK-DEBUG-SIM
-               DISPLAY ' 9100-LER-FILE7'
+               DISPLAY ' 9200-LER-FILE7'
            END-IF
 
-           READ FILE7
+           READ FILE007
 
-           IF  WRK-FS-FILE7-OK
-               CONTINUE
-           ELSE
-               IF WRK-FS-FILE7-EOF
-                   MOVE HIGH-VALUE TO B135F007-CPF
-               ELSE
-                   MOVE 'FILE7'            TO BKALERRO-ARQ-NOME
-                   MOVE 'LEITURA'          TO BKALERRO-ARQ-MOMENTO
-                   MOVE WRK-FS-FILE7       TO BKALERRO-ARQ-FILESTATUS
+           IF  NOT WRK-FS-FILE007-OK
+           AND NOT WRK-FS-FILE007-EOF
+               MOVE '9200-LER-FILE7'   TO BKALERRO-PARAGRAFO
+               MOVE 'FILE7'            TO BKALERRO-ARQ-NOME
+               MOVE 'LEITURA'          TO BKALERRO-ARQ-MOMENTO
+               MOVE WRK-FS-FILE007       TO BKALERRO-ARQ-FILESTATUS
 
-                   PERFORM 9999-ABEND
-                   THRU 9999-ABEND-FIM
-                END-IF
+               PERFORM 9999-ABEND
+                  THRU 9999-ABEND-FIM
+
            END-IF.
 
-       9100-LER-FILE7-FIM.             EXIT.
-      *----------------------------------------------------------------*
-      * 9100-LER-ARQUIVO                                               *
-      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
-      *       CORRETA COMO: ABRIR ARQUIVOS                             *
-      *----------------------------------------------------------------*
-       9200-CALCULA-HORAS-EXTRAS       SECTION.
-           IF  WRK-DEBUG-SIM
-               DISPLAY ' 9200-CALCULA-HORAS-EXTRAS'
-           END-IF
-
-           MOVE B135F007-DATA-HORA-INICIO(12:2) TO HORA-INICIO
-           MOVE B135F007-DATA-HORA-INICIO(15:2) TO MINUTO-INICIO
-           MOVE B135F007-DATA-HORA-FIM(12:2)    TO HORA-FIM
-           MOVE B135F007-DATA-HORA-FIM(15:2)    TO MINUTO-FIM
-           COMPUTE TOTAL-MINUTOS-INICIO = (HORA-INICIO * 60)
-                + MINUTO-INICIO
-           COMPUTE TOTAL-MINUTOS-FIM    = (HORA-FIM    * 60)
-                + MINUTO-FIM
-           COMPUTE WS-QTD-HORAS-EXTRA = (TOTAL-MINUTOS-FIM
-                - TOTAL-MINUTOS-INICIO) / 60
-
-
-           .
-       9200-CALCULA-HORAS-EXTRAS-FIM.  EXIT.
-      *----------------------------------------------------------------*
-      * 9100-LER-ARQUIVO                                               *
-      * DESC: TODOS OS PROCEDIMENTOS PARA INICIAR O PROGRAMA DA FORMA  *
-      *       CORRETA COMO: ABRIR ARQUIVOS                             *
-      *----------------------------------------------------------------*
-       9300-CALCULA-VALOR-EXTRA       SECTION.
-           IF  WRK-DEBUG-SIM
-               DISPLAY ' 9300-CALCULA-VALOR-HORA-EXTRA'
-           END-IF
-
-           IF WS-ACUMULA-HORAS-EXTRAS NOT = 0
-               EVALUATE B135F005-ID-CARGO
-                   WHEN 0020
-                   COMPUTE WS-VALOR-HORA =
-                           (B135F005-SALARIO-BASE / 30) * 0,20
-
-                   WHEN 0040
-                   COMPUTE WS-VALOR-HORA =
-                           (B135F005-SALARIO-BASE / 30) * 0,40
-
-                    WHEN 0055
-                    COMPUTE WS-VALOR-HORA =
-                           (B135F005-SALARIO-BASE / 30) * 0,55
-               END-EVALUATE
-
-               COMPUTE WS-VALOR-HORA-EXTRA =
-                            WS-ACUMULA-HORAS-EXTRAS * WS-VALOR-HORA
-           END-IF
-           .
-       9300-CALCULA-VALOR-EXTRA-FIM.  EXIT.
+       9200-LER-FILE7-FIM.             EXIT.
       *----------------------------------------------------------------*
       * 9999-ABEND                                                     *
       * DESC: UMA VEZ QUE O DIMENTOS PARA FINALIZAR O PROGRAMA DA FOR- *
@@ -495,10 +492,7 @@
            DISPLAY 'FILE STATUS: ' BKALERRO-ARQ-FILESTATUS
            DISPLAY '***************************************'
 
-      *     COMPUTE BKALERRO-RESULTADO =
-      *             BKALERRO-NUMERADOR / BKALERRO-DENOMINADOR.
-           MOVE +16                    TO WRK-FS-FILE5
-           STOP RUN.
-
+      *    COMPUTE BKALERRO-RESULTADO =
+      *            BKALERRO-NUMERADOR / BKALERRO-DENOMINADOR.
+           .
        9999-ABEND-FIM.                 EXIT.
-

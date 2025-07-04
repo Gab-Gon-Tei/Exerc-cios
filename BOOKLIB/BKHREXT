@@ -1,32 +1,12 @@
-      *----------------------------------------------------------------*00010000
-      * BOOK DE ARQUIVO     - VARIAVEIS DE TEMPO DE PROCESS             00020008
-      * NOME DO BOOK        - VARPROSS                                  00030008
-      * NOME DO PDS         - FS.FSYS004.BOOKLIB                        00040001
-      *----------------------------------------------------------------*00060001
-       01  WS-HORARIO-INICIAL.                                          00070008
-           05 WS-HORA-I                    PIC 99.                      00080008
-           05 WS-MIN-I                     PIC 99.                      00090008
-           05 WS-SEG-I                     PIC 99.                      00100008
-           05 WS-CENT-I                    PIC 99.                      00100108
-       01  WS-HORARIO-FINAL.                                            00101008
-           05 WS-HORA-F                    PIC 99.                      00102008
-           05 WS-MIN-F                     PIC 99.                      00103008
-           05 WS-SEG-F                     PIC 99.                      00104008
-           05 WS-CENT-F                    PIC 99.                      00105008
-       01  WS-TEMPO-PROCESSAMENTO.                                      00140008
-           05 WS-HORA-P                    PIC 99.                      00150008
-           05 WS-MIN-P                     PIC 99.                      00160008
-           05 WS-SEG-P                     PIC 99.                      00170008
-           05 WS-CENT-P                    PIC 99.                      00180008
-       77  WS-DIFERENCA                    PIC 9(07).                   00190008
-       01  WS-TEMPO-PROCESSAMENTO-F.                                    00200008
-           05 WS-HORA-PF                   PIC 99.                      00210008
-           05 FILLER                       PIC X(01)                    00220009
-                                                 VALUE ':'.             00230008
-           05 WS-MIN-PF                    PIC 99.                      00231008
-           05 FILLER                       PIC X(01)                    00232009
-                                                 VALUE ':'.             00233008
-           05 WS-SEG-PF                    PIC 99.                      00234008
-           05 FILLER                       PIC X(01)                    00235009
-                                                 VALUE ':'.             00236008
-           05 WS-CENT-PF                   PIC 99.                      00240008
+      *----------------------------------------------------------------*
+      * BOOK DE ARQUIVO     - VARIAVEIS DE TEMPO DE PROCESS
+      * NOME DO BOOK        - VARPROSS
+      * NOME DO PDS         - FS.FSYS004.BOOKLIB
+      *----------------------------------------------------------------*
+       77  HORA-INICIO                 PIC 9(04).
+       77  MINUTO-INICIO               PIC 9(04).
+       77  HORA-FIM                    PIC 9(04).
+       77  MINUTO-FIM                  PIC 9(04).
+       77  TOTAL-MINUTOS-INICIO        PIC 9(04)V99.
+       77  TOTAL-MINUTOS-FIM           PIC 9(04)V99.
+

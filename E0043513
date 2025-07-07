@@ -30,8 +30,8 @@
            SELECT FILE008 ASSIGN TO FILE008
                   FILE STATUS IS WRK-FS-FILE008.
 
-           SELECT RELA001 ASSIGN TO RELA001
-                  FILE STATUS IS WRK-FS-RELA001.
+           SELECT REL009 ASSIGN TO REL009
+                  FILE STATUS IS WRK-FS-REL009.
 
       ******************************************************************
       *                                                                *
@@ -46,19 +46,19 @@
        FILE SECTION.
 
        FD  FILE008
-           RECORDING MODE IS F
-           LABEL RECORD IS STANDARD
-           BLOCK CONTAINS 12 RECORDS
-           DATA RECORD IS FD-FILE008-REGISTRO.
+           RECORDING MODE IS F.
+      *    LABEL RECORD IS STANDARD
+      *    BLOCK CONTAINS 12 RECORDS
+      *    DATA RECORD IS FD-FILE008-REGISTRO.
        01  REG-FILE008.
            COPY B135F008.
 
-       FD  RELA001
-           RECORDING MODE IS F
-           LABEL RECORD IS STANDARD
-           BLOCK CONTAINS 12 RECORDS
-           DATA RECORD IS FD-RELA001-REGISTRO.
-       01  REG-RELA001                     PIC X(157).
+       FD  REL009
+           RECORDING MODE IS F.
+      *    LABEL RECORD IS STANDARD
+      *    BLOCK CONTAINS 12 RECORDS
+      *    DATA RECORD IS FD-REL009-REGISTRO.
+       01  REG-REL009                      PIC X(157).
 
       *-------------------------*
       * WORKING STORAGE SECTION *
@@ -78,12 +78,12 @@
                88  WRK-FS-FILE008-OK               VALUE '00'.
                88  WRK-FS-FILE008-EOF              VALUE '10'.
 
-           05  WRK-FS-RELA001          PIC  X(02)  VALUE SPACES.
-               88  WRK-FS-RELA001-OK               VALUE '00'.
-               88  WRK-FS-RELA001-EOF              VALUE '10'.
+           05  WRK-FS-REL009           PIC  X(02)  VALUE SPACES.
+               88  WRK-FS-REL009-OK                VALUE '00'.
+               88  WRK-FS-REL009-EOF               VALUE '10'.
 
       ******************************************************************
-      *                LAYOUT DO RELATORIO                             *
+      *                LAYOUT DO REL009RIO                             *
       ******************************************************************
       *LINHA DE DETALHE
       ******************************************************************
@@ -91,21 +91,21 @@
 
            05 LD-CPF                       PIC X(11).
            05 FILLER                       PIC X(03)
-                                                   VALUE 
+                                                   VALUE
               ' | '.
            05 LD-NOME                      PIC X(100).
            05 FILLER                       PIC X(03)
-                                                   VALUE 
+                                                   VALUE
               ' | '.
            05 LD-CARGO                     PIC X(04).
            05 FILLER                       PIC X(04)
-                                                   VALUE 
+                                                   VALUE
               ' | R'.
-           05 LD-SALARIO-BASE              PIC $BB.BBB.BB9,99.
+           05 LD-SALARIO-BASE              PIC $ZZ.ZZZ.ZZ9,99.
            05 FILLER                       PIC X(04)
-                                                   VALUE 
+                                                   VALUE
               ' | R'.
-           05 LD-VALOR-HORA-EXTRA          PIC $BB.BBB.BB9,99.
+           05 LD-VALOR-HORA-EXTRA          PIC $ZZ.ZZZ.ZZ9,99.
            05 FILLER                       PIC X(09)
                                                    VALUE SPACES.
       * COPYBOOKS
@@ -177,15 +177,15 @@
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
-           END-IF 
+           END-IF
 
-           OPEN OUTPUT RELA001
+           OPEN OUTPUT REL009
 
-           IF  NOT  WRK-FS-RELA001-OK
+           IF  NOT  WRK-FS-REL009-OK
 
-               MOVE 'RELA001'          TO BKALERRO-ARQ-NOME
+               MOVE 'REL009'           TO BKALERRO-ARQ-NOME
                MOVE 'ABERTURA'         TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-RELA001     TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-REL009      TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM
@@ -201,7 +201,7 @@
            IF  WRK-DEBUG-SIM
                DISPLAY ' 2000-PROCESSAR'
            END-IF
-           
+
            PERFORM 9100-IMPRIME-DETALHE
               THRU 9100-IMPRIME-DETALHE-FIM.
 
@@ -224,18 +224,16 @@
            MOVE B135F008-SALARIO-BASE TO LD-SALARIO-BASE
            MOVE B135F008-VALOR-HORA-EXTRA
                                        TO LD-VALOR-HORA-EXTRA
-           
-           WRITE REG-RELA001 FROM WS-LINDET
-           IF NOT WRK-FS-RELA001-OK
-                MOVE 'RELA001'          TO BKALERRO-ARQ-NOME
+
+           WRITE REG-REL009 FROM WS-LINDET
+           IF NOT WRK-FS-REL009-OK
+                MOVE 'REL009'           TO BKALERRO-ARQ-NOME
                 MOVE 'GRAVACAO'         TO BKALERRO-ARQ-MOMENTO
-                MOVE WRK-FS-RELA001     TO BKALERRO-ARQ-FILESTATUS
-    
+                MOVE WRK-FS-REL009      TO BKALERRO-ARQ-FILESTATUS
+
                 PERFORM 9999-ABEND
                     THRU 9999-ABEND-FIM
               END-IF.
-
-           .
 
        9100-IMPRIME-DETALHE-FIM.       EXIT.
       *----------------------------------------------------------------*
@@ -250,7 +248,7 @@
            END-IF
 
            PERFORM 3100-FECHAR-ARQUIVOS
-           
+
               THRU 3100-FECHAR-ARQUIVOS-FIM.
 
        3000-FINALIZAR-FIM.             EXIT.
@@ -278,16 +276,16 @@
                   THRU 9999-ABEND-FIM
 
            END-IF
-           
-           CLOSE RELA001
 
-           IF  NOT  WRK-FS-RELA001-OK
+           CLOSE REL009
+
+           IF  NOT  WRK-FS-REL009-OK
 
                MOVE '3100-FECHAR-ARQUIVOS'
                                        TO BKALERRO-PARAGRAFO
-               MOVE 'RELA001'          TO BKALERRO-ARQ-NOME
+               MOVE 'REL009'           TO BKALERRO-ARQ-NOME
                MOVE 'FECHAMENTO'       TO BKALERRO-ARQ-MOMENTO
-               MOVE WRK-FS-RELA001     TO BKALERRO-ARQ-FILESTATUS
+               MOVE WRK-FS-REL009      TO BKALERRO-ARQ-FILESTATUS
 
                PERFORM 9999-ABEND
                   THRU 9999-ABEND-FIM

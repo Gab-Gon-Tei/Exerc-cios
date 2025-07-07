@@ -1,25 +1,25 @@
       ******************************************************************
       *              CENTRO DE FORMACAO - CURSO MAINFRAME              *
       * ============================================================== *
-      * B135F008: UTILIZADO COMO PADRAO PARA TRAFEGAR INFORMACOES EM   *
+      * B135F009: UTILIZADO COMO PADRAO PARA TRAFEGAR INFORMACOES EM   *
       *           TODOS OS MODULOS SO CURSO MAINIRAME DO DEPERTAMENTO  *
       *           DE FORMACAO.                                         *
       *                                                                *
       * AUTOR: GABRIEL TEIXEIRA   DATA DE CRIACAO: 01/07/2025  *
       ******************************************************************
-           05 B135F008-CPF                 PIC X(11).
-           05 B135F008-NOME                PIC X(100).
-           05 B135F008-TELEFONE            PIC 9(15).
-           05 B135F008-ID-CARGO            PIC 9(4).
-           05 B135F008-ID-DEPARTAMENTO     PIC 9(4).
-           05 B135F008-SALARIO-BASE        PIC S9(8)V99 COMP-3.
-           05 B135F008-ADMISSAO            PIC X(10).
-           05 B135F008-DEMISSAO            PIC X(10).
-           05 B135F008-QTD-DEPENDENTES     PIC 9(2).
-           05 B135F008-SOLICITOU-VT        PIC 9(1).
-           05 B135F008-CONTRIB-SINDICAL    PIC 9(1).
-           05 B135F008-QTD-HORAS-EXTRAS    PIC 9(2)V99.
-           05 B135F008-VALOR-HORA-EXTRA    PIC S9(8)V99 COMP-3.
-           05 B135F008-INSS-CALCULADO     PIC S9(8)V99 COMP-3.
+           05 B135F009-CPF                 PIC X(11).
+           05 B135F009-NOME                PIC X(100).
+           05 B135F009-TELEFONE            PIC 9(15).
+           05 B135F009-ID-CARGO            PIC 9(4).
+           05 B135F009-ID-DEPARTAMENTO     PIC 9(4).
+           05 B135F009-SALARIO-BASE        PIC S9(8)V99 COMP-3.
+           05 B135F009-ADMISSAO            PIC X(10).
+           05 B135F009-DEMISSAO            PIC X(10).
+           05 B135F009-QTD-DEPENDENTES     PIC 9(2).
+           05 B135F009-SOLICITOU-VT        PIC 9(1).
+           05 B135F009-CONTRIB-SINDICAL    PIC 9(1).
+           05 B135F009-QTD-HORAS-EXTRAS    PIC 9(2)V99.
+           05 B135F009-VALOR-HORA-EXTRA    PIC S9(8)V99 COMP-3.
+           05 B135F009-INSS-CALCULADO     PIC S9(8)V99 COMP-3.
            05 FILLER                       PIC X(200).
 
